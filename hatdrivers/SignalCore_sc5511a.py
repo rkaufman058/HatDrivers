@@ -15,12 +15,14 @@ from qcodes import (Instrument, VisaInstrument,
                     ManualParameter, MultiParameter,
                     validators as vals)
 
-class SignalCore_sc5511a_test(Instrument):
+sn = ctypes.c_char_p(b'10000E9D') # Signal core 1
+debug = True
+
+class SignalCore_sc5511a(Instrument):
     
     def __init__(self, name, dll = None, serial_number=sn):
-        
-        logging.info(__name__ + ' : Initializing instrument SignalCore generator')
-        Instrument.__init__(self, name, tags=['generate'])
+        # logging.info(__name__ + ' : Initializing instrument SignalCore generator')
+        super().__init__(name)
         
         # I tried to open the dll file in the create_instruments file to shre the same dll
         # file, but that did not seem to fix the problem
@@ -44,35 +46,55 @@ class SignalCore_sc5511a_test(Instrument):
             print(serial_number, self._handle)
         self._dll.sc5511a_close_device(self._handle)  
         
-        self.add_parameter('output_status', type = types.IntType,
-                           flags = Instrument.FLAG_GETSET)
-        self.add_parameter('frequency', type = types.IntType,
-                           flags=Instrument.FLAG_GETSET, units = ' Hz')
-        self.add_parameter('reference_source', type = types.IntType,
-                           flags = Instrument.FLAG_GETSET, options_list = [0, 1])
-        self.add_parameter('alc_auto', type = types.IntType,
-                           flags = Instrument.FLAG_GETSET, options_list = [0, 1])
-        self.add_parameter('power', type = types.FloatType, 
-                           flags = Instrument.FLAG_GETSET, units = ' dBm')
-        self.add_parameter('device_temp', type = types.FloatType, flags = Instrument.FLAG_GET, units = 'C')
-		
+        self.add_parameter('output_status', 
+                           get_cmd = self.do_get_output_status,
+                           set_cmd = self.do_set_output_status, 
+                           vals = vals.Ints(0,1),
+                           get_parser = int
+                           )
+        self.add_parameter('frequency',
+                           get_cmd = self.do_get_frequency,
+                           set_cmd = self.do_set_frequency,
+                           vals = vals.Numbers(100e6, 20e9),
+                           unit = 'Hz'
+                           )
+        self.add_parameter('reference_source', 
+                           get_cmd = self.do_get_reference_source, 
+                           set_cmd = self.do_set_reference_source, 
+                           vals = vals.Ints(0,1), 
+                           get_parser = int
+                           )
+        self.add_parameter('alc_auto', 
+                           get_cmd = self.do_get_alc_auto, 
+                           set_cmd = self.do_set_alc_auto, 
+                           vals = vals.Ints(0,1), 
+                           get_parser = int
+                           )
+        self.add_parameter('power',
+                           get_cmd = self.do_get_power, 
+                           set_cmd = self.do_set_power, 
+                           vals = vals.Numbers(-30,20),
+                           unit = ' dBm')
+        
+        self.add_parameter('device_temp', 
+                           get_parser = float, 
+                           get_cmd = self.do_get_device_temp, 
+                           unit = 'C')
+    		
         
         if self._device_status.operate_status_t.ext_ref_lock_enable == 0:
-            self.set_reference_source(1)
-
-        self.add_function('get_all')
-        self.add_function('close')
-        self.add_function('set_open')
+            self.do_set_reference_source(1)
+    
         self.get_all()
-              
+        
     def set_open(self, open):
-		if open and not self._open:
-			self._handle = self._dll.sc5511a_open_device(self._serial_number)
-			self._open = True
-		elif not open and self._open:
-			self._dll.sc5511a_close_device(self._handle)
-			self._open = False
-		return 1
+            if open and not self._open:
+                self._handle = self._dll.sc5511a_open_device(self._serial_number)
+                self._open = True
+            if not open and self._open:
+                self._dll.sc5511a_close_device(self._handle)
+                self._open = False
+            return 1
                       
     def do_set_output_status(self, enable):
         """
@@ -86,7 +108,7 @@ class SignalCore_sc5511a_test(Instrument):
         completed = self._dll.sc5511a_set_output(self._handle, c_enable)
         self._dll.sc5511a_close_device(self._handle)
         return completed
-
+    
     def do_get_output_status(self):
         '''
         Reads the output status of RF1
@@ -195,16 +217,14 @@ class SignalCore_sc5511a_test(Instrument):
         device_temp = self._temperature.device_temp
         self._dll.sc5511a_close_device(self._handle)
         return device_temp
-        
-    
-    
+
     
     def get_all(self):
-        self.get_output_status()
-        self.get_frequency()
-        self.get_reference_source()
-        self.get_alc_auto()
-        self.get_power()
+        self.output_status()
+        self.frequency()
+        self.reference_source()
+        self.alc_auto()
+        self.power()
 # Structures to communicate with device----------------------------------------
 class Device_rf_params_t(ctypes.Structure):
 	_fields_ = [("rf1_freq", ctypes.c_ulonglong),
