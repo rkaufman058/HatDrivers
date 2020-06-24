@@ -1,0 +1,7 @@
+README.md
+setup.py
+HatDrivers.egg-info/PKG-INFO
+HatDrivers.egg-info/SOURCES.txt
+HatDrivers.egg-info/dependency_links.txt
+HatDrivers.egg-info/not-zip-safe
+HatDrivers.egg-info/top_level.txt
