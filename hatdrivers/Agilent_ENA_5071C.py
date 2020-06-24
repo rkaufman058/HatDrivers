@@ -113,12 +113,13 @@ class Agilent_ENA_5071C(VisaInstrument):
                                              'PLIN', 'POL', 'MLIN', 
                                              'SWR', 'REAL', 'IMAG', 
                                              'UPH', 'PPH')
-                            '''
-                            Set trace format. MLOGarithmic|PHASe|GDELay| SLINear|
-                            SLOGarithmic|SCOMplex|SMITh|SADMittance|PLINear|PLOGarithmic|
-                            POLar|MLINear|SWR|REAL| IMAGinary|UPHase|PPHase
-                            '''
                             )
+                            # '''
+                            # Set trace format. MLOGarithmic|PHASe|GDELay| SLINear|
+                            # SLOGarithmic|SCOMplex|SMITh|SADMittance|PLINear|PLOGarithmic|
+                            # POLar|MLINear|SWR|REAL| IMAGinary|UPHase|PPHase
+                            # '''
+                            
         self.add_parameter('math', 
                            get_cmd = ':CALC1:MATH:FUNC?', 
                            set_cmd = ':CALC1:MATH:FUNC {}', 
