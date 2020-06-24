@@ -11,7 +11,7 @@ import logging
 import numpy as np
 import time
 #from pyvisa.visa_exceptions import VisaIOError
-triggered=[False]*159 
+#triggered=[False]*159 
 
 class Agilent_ENA_5071C(VisaInstrument):
     '''
@@ -47,6 +47,11 @@ class Agilent_ENA_5071C(VisaInstrument):
                            unit = 'dBm',
                            get_parser = float
                            )
+        self.add_parameter('power_stop', 
+                           get_cmd = ':SOUR:POW:STOP?', 
+                           set_cmd = ':SOUR1:POW:STOP {:s}', 
+                           unit = 'dBm', 
+                           get_parser = float), 
         self.add_parameter('averaging', 
                            get_cmd = ':SENS1:AVER?',
                            set_cmd = ':SENS1:AVER {:s}')
@@ -75,11 +80,22 @@ class Agilent_ENA_5071C(VisaInstrument):
                            )
         self.add_parameter('trace', 
                            set_cmd = None, 
-                           get_cmd = )
+                           get_cmd = self.gettrace)
         
-        
-        
-        
+        def gettrace(self):
+            '''
+            Gets amp/phase stimulus data, returns 2 arrays
+            
+            Input:
+                None
+            Output:
+                mags (dB) phases (rad)
+            '''
+            logging.info(__name__ + ' : get amp, phase stim data')
+            strdata= str(self._visainstrument.ask(':CALC:DATA:FDATa?'))
+            data= np.array(map(float,strdata.split(',')))
+            data=data.reshape((len(data)/2,2))
+            return data.transpose() # mags, phase
         
         
         
