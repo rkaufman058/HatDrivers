@@ -6,7 +6,7 @@ A driver to control the Keysight MXG Analog Signal Generator N5183B using QCodes
 
 #original driver by Erick Brindock for Qtlab
 
-@author: Hatlab - Ryan Kaufman
+@author: Hatlab - Ryan Kaufman - rewritten for QCodes
 
 """
 import types
@@ -19,8 +19,11 @@ from qcodes import (Instrument, VisaInstrument,
 
 class Keysight_N5183B(VisaInstrument):
     #startup, setting all of the parameters, confirming connection
-    def __init__(self, name, address, **kwargs): 
+    def __init__(self, name, address = None, **kwargs): 
         
+        if address == None:
+            raise Exception('TCPIP Address needed')
+            
         logging.info(__name__ + ' : Initializing instrument Agilent_E5071C')
         
         super().__init__(name, address, terminator = '\n', **kwargs)
@@ -203,6 +206,7 @@ class Keysight_N5183B(VisaInstrument):
         Reset to default state
         '''
         self._visainstrument.write('*RST')
+        
     def get_all(self):
 
         self.output_status()

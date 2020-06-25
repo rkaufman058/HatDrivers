@@ -25,7 +25,7 @@ class Agilent_ENA_5071C(VisaInstrument):
     address='<GBIP address>, reset=<bool>')
     '''
     
-    def __init__(self, name, address, **kwargs):
+    def __init__(self, name, address = None, **kwargs):
         '''
         Initializes the Agilent_E5071C, and communicates with the wrapper.
 
@@ -34,16 +34,48 @@ class Agilent_ENA_5071C(VisaInstrument):
           address (string) : GPIB address
           reset (bool)     : resets to default values, default=False
         '''
+        if address == None: 
+            raise Exception('TCP IP address needed')
         logging.info(__name__ + ' : Initializing instrument Agilent_E5071C')
         super().__init__(name, address, terminator = '\n', **kwargs)
 
         # Add in parameters
+        self.add_paramter('fstart', 
+                          get_cmd = ':SENS1:FREQ:STAR?', 
+                          set_cmd = ':SENS1:FREQ:STAR {}', 
+                          vals = vals.Numbers(), 
+                          get_parser = float, 
+                          unit = 'Hz'
+                          )
+        self.add_paramter('fstop', 
+                          get_cmd = ':SENS1:FREQ:STOP?', 
+                          set_cmd = ':SENS1:FREQ:STOP {}', 
+                          vals = vals.Numbers(), 
+                          get_parser = float, 
+                          unit = 'Hz'
+                          )
+        self.add_paramter('fcenter', 
+                          get_cmd = ':SENS1:FREQ:CENT?', 
+                          set_cmd = ':SENS1:FREQ:CENT {}', 
+                          vals = vals.Numbers(), 
+                          get_parser = float, 
+                          unit = 'Hz'
+                          )
+        self.add_paramter('fspan', 
+                          get_cmd = ':SENS1:FREQ:SPAN?', 
+                          set_cmd = ':SENS1:FREQ:SPAN {}', 
+                          vals = vals.Numbers(), 
+                          get_parser = float, 
+                          unit = 'Hz'
+                          )
+        
         self.add_parameter('rfout', 
                            get_cmd = ':OUTP?',
                            set_cmd = ':OUTP {}',
                            vals = vals.Ints(0,1), 
                            get_parser = int
                            )
+        
         self.add_parameter('nfpts', 
                            get_cmd = ':SENS1:SWE:POIN?', 
                            set_cmd = ':SENS1:SWE:POIN {}', 

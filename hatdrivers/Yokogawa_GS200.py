@@ -17,8 +17,9 @@ import numpy as np
 
 class YOKO(GS200): 
     
-    def __init__(self,name: str, address: str, terminator: str = "\n", **kwargs):
-        
+    def __init__(self,name: str, address: str = None, terminator: str = "\n", **kwargs):
+        if address == None:
+            raise Exception('TCPIP Address needed')
         super().__init__(name, address, terminator = terminator, **kwargs)
         #the driver assumes you just turned on the YOKO, and it's in voltage mode. This is almost never the case
         #for us so this sequence changes that assumption to prep for changing currents instead of voltages
