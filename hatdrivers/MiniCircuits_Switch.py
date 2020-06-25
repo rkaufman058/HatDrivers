@@ -17,28 +17,30 @@ from qcodes import (Instrument, VisaInstrument,
                     ManualParameter, MultiParameter,
                     validators as vals)
 import logging
-import urllib2
+from urllib.request import urlopen
 
 #switch_address = 'http://169.254.47.255'
+
 class MiniCircuits_Switch(Instrument):
 
-    def __init__(self, name, address, reset=False):
+    def __init__(self, name, address = None):
         '''
         Initializes the Mini_Circuits switch, and communicates with the wrapper.
 
         Input:
           name (string)    : name of the instrument
           address (string) : http address
-          reset (bool)     : resets to default values, default=False
         '''
-        logging.info(__name__ + ' : Initializing instrument Mini_CircuitsSwitch')
-        super().__init__(self, name)
+        
+        super().__init__(name)
 
-        # Add some global constants
-        self._address = address
+        if address == None: 
+            raise Exception("Enter SWT IP Address")
+        else: 
+            self._address = address
         
         self.add_parameter('portvalue',
-                           get_cmd = self.do_get_portvalue(), 
+                           get_cmd = self.do_get_portvalue, 
                            set_cmd = None, 
                            get_parser = str)
 
@@ -56,7 +58,7 @@ class MiniCircuits_Switch(Instrument):
         logging.info(__name__ + ' : get all')
         #self.get_runningstate()
         
-        self.get_portvalue()
+        self.portvalue()
 
     def set_switch(self,sw,state):
         '''
@@ -66,10 +68,10 @@ class MiniCircuits_Switch(Instrument):
         '''
         logging.info(__name__ + ' : Set switch%s' % sw +' to state %s' % state)
         if sw != 'P':
-            ret = urllib2.urlopen(self._address + "/SET" + sw + "=" + state)
+            ret = urlopen(self._address + "/SET" + sw + "=" + state)
         else:
             if (len(state)) != 8:
-                print len(state)
+                print(len(state))
                 raise Exception("Wrong input length!")
             newstate = 0
             for x in range(0,len(state)):
@@ -79,10 +81,12 @@ class MiniCircuits_Switch(Instrument):
                     newstate += int(state[x])*(2**x)
             
   
-            ret = urllib2.urlopen(self._address + "/SETP" + "=" + str(newstate))
+            ret = urlopen(self._address + "/SETP" + "=" + str(newstate))
 
         status = ret.readlines()[0]
-        if status != '1':
+        # print("DIAGNOSTIC: ")
+        # print(status)
+        if status != b'1':
             raise Exception("Switch didn't switch!")
         else:
             self.get('portvalue')
@@ -90,7 +94,7 @@ class MiniCircuits_Switch(Instrument):
         
     def do_get_portvalue(self):
         logging.debug(__name__+' : get portvalue')
-        ret = urllib2.urlopen(self._address + "/SWPORT?" )
+        ret = urlopen(self._address + "/SWPORT?" )
         result = ret.readlines()[0]
         result = int(result)
         result = format(result,'08b')

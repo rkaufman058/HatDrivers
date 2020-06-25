@@ -41,10 +41,11 @@ class SWT(): #no need to subclass object anymore, thankfully
         '''
         self.switch1 = SWT1
         self.switch2 = SWT2
-        self.modes = modes_dict
-        print 'hello, this is switch'
         
-    def get_portvalue(self):
+        self.modes = modes_dict
+        print ('hello, this is switch')
+        
+    def portvalue(self):
         '''
         Get the port value of each swtich and print them.
         
@@ -54,12 +55,12 @@ class SWT(): #no need to subclass object anymore, thankfully
             None. But will print the port value of each swtich on the screen.
         '''
         
-        print 'Switch 1 port value is:'
-        swt1_value = self.switch1.get_portvalue()
-        print swt1_value
-        print 'Switch 2 port value is:'
-        swt2_value = self.switch2.get_portvalue()
-        print swt2_value
+        print ('Switch 1 port value is:')
+        swt1_value = self.switch1.portvalue()
+        print (swt1_value)
+        print ('Switch 2 port value is:')
+        swt2_value = self.switch2.portvalue()
+        print (swt2_value)
         
         return (swt1_value, swt2_value)
         
@@ -80,10 +81,10 @@ class SWT(): #no need to subclass object anymore, thankfully
         elif str(switch_name) == '2':
             self.switch2.set_switch(str(channel), str(state))
         else:
-            print 'Confucius says there is no such switch. Nothing has been changed.'
+            print ('Confucius says there is no such switch. Nothing has been changed.')
     
              
-    def set_mode_dict(self, mode, modes = self.modes):
+    def set_mode_dict(self, mode):
         '''
         Set the states of all swtiches to a pre-set mode.
         All the mode we wish to use during the experiment should be set above the 
@@ -94,12 +95,12 @@ class SWT(): #no need to subclass object anymore, thankfully
         Output:
             None. But will print an error message if the mode name is wrong.
         '''
-        current_states = self.get_portvalue()
-        if mode in modes:
-            self.set_switch(1, 'P', self.create_new_mode_string(current_states[0], modes[mode][0]))
-            self.set_switch(2, 'P', self.create_new_mode_string(current_states[1], modes[mode][1]))
+        current_states = self.portvalue()
+        if mode in self.modes:
+            self.set_switch(1, 'P', self.create_new_mode_string(current_states[0], self.modes[mode][0]))
+            self.set_switch(2, 'P', self.create_new_mode_string(current_states[1], self.modes[mode][1]))
         else:
-            print  'Confucius say there is no such mode. Nothing has been changed.'
+            print  ('Confucius say there is no such mode. Nothing has been changed.')
             
             
     def set_SA_mode(self, mode):
@@ -123,7 +124,7 @@ class SWT(): #no need to subclass object anymore, thankfully
             self.set_switch(1, 'H', '1')
             self.set_switch(2, 'F', '1')
         else:
-            print 'Confucius say there is no such mode. Nothing has been changed.'
+            print ('Confucius say there is no such mode. Nothing has been changed.')
             
     def create_new_mode_string(self, current_state, new_state):
         if len(current_state)  != len(new_state):
