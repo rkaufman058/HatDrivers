@@ -20,9 +20,13 @@ class YOKO(GS200):
     def __init__(self,name: str, address: str, terminator: str = "\n", **kwargs):
         
         super().__init__(name, address, terminator = terminator, **kwargs)
-        #get the mode and range from the YOKO on startup
-        self.source_mode('CURR')
-        self.range()
+        #the driver assumes you just turned on the YOKO, and it's in voltage mode. This is almost never the case
+        #for us so this sequence changes that assumption to prep for changing currents instead of voltages
+        self._cached_mode = "CURR"
+        self.output_level = self.current # the whole parameter, not just one value
+        
+        self._cached_range_value = self.current_range()
+        
         
     def change_current(self,new_curr):
         #if the difference is less than a milliamp, the steps will be 0.1uA, otherwise, 1uA
