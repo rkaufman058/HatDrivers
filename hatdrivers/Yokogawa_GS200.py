@@ -22,7 +22,7 @@ class YOKO(GS200):
             raise Exception('TCPIP Address needed')
         super().__init__(name, address, terminator = terminator, **kwargs)
         #the driver assumes you just turned on the YOKO, and it's in voltage mode. This is almost never the case
-        #for us so this sequence changes that assumption to prep for changing currents instead of voltages
+        #for us so this sequence changes that assumption to currents instead of voltages
         self._cached_mode = "CURR"
         self.output_level = self.current # the whole parameter, not just one value
         
