@@ -3,6 +3,8 @@
 #Additions by Alex
 #average method by Erick Brindock  7/15/16
 #driver rewritten by Ryan Kaufman 06/11/20 for Qcodes
+#YR: also, here is keysights manual,http://ena.support.keysight.com/e5071c/manuals/webhelp/eng/
+#you want the programming -> remote control part for VISA commands
 
 import visa
 import types
@@ -40,28 +42,28 @@ class Agilent_ENA_5071C(VisaInstrument):
         super().__init__(name, address, terminator = '\n', **kwargs)
 
         # Add in parameters
-        self.add_paramter('fstart', 
+        self.add_parameter('fstart', 
                           get_cmd = ':SENS1:FREQ:STAR?', 
                           set_cmd = ':SENS1:FREQ:STAR {}', 
                           vals = vals.Numbers(), 
                           get_parser = float, 
                           unit = 'Hz'
                           )
-        self.add_paramter('fstop', 
+        self.add_parameter('fstop', 
                           get_cmd = ':SENS1:FREQ:STOP?', 
                           set_cmd = ':SENS1:FREQ:STOP {}', 
                           vals = vals.Numbers(), 
                           get_parser = float, 
                           unit = 'Hz'
                           )
-        self.add_paramter('fcenter', 
+        self.add_parameter('fcenter', 
                           get_cmd = ':SENS1:FREQ:CENT?', 
                           set_cmd = ':SENS1:FREQ:CENT {}', 
                           vals = vals.Numbers(), 
                           get_parser = float, 
                           unit = 'Hz'
                           )
-        self.add_paramter('fspan', 
+        self.add_parameter('fspan', 
                           get_cmd = ':SENS1:FREQ:SPAN?', 
                           set_cmd = ':SENS1:FREQ:SPAN {}', 
                           vals = vals.Numbers(), 
@@ -110,6 +112,12 @@ class Agilent_ENA_5071C(VisaInstrument):
         self.add_parameter('averaging', 
                            get_cmd = ':SENS1:AVER?',
                            set_cmd = ':SENS1:AVER {}', 
+                           get_parser = int, 
+                           vals = vals.Ints(0,1)
+                           )
+        self.add_parameter('average_trigger', 
+                           get_cmd = ':TRIG:AVER?',
+                           set_cmd = ':TRIG:AVER {}', 
                            get_parser = int, 
                            vals = vals.Ints(0,1)
                            )
@@ -184,6 +192,8 @@ class Agilent_ENA_5071C(VisaInstrument):
         
         
 ####################### Custom Functions 
+    def average_restart(self):
+        self.write('SENS1:AVER:CLE')    
     def gettrace(self):
         '''
         Gets amp/phase stimulus data, returns 2 arrays
@@ -258,6 +268,20 @@ class Agilent_ENA_5071C(VisaInstrument):
         '''
         logging.debug(__name__+": data to mem called")
         self.write(":CALC1:MATH:MEM")
+    def average(self, number): 
+        #THIS DOES NOT WORK ABOVE 9 AVERAGES UNLESS THE DEFAULT VISA TIMEOUT IS CHANGED. YES, I KNOW IT SUCKS
+        '''
+        Sets the number of averages taken, waits until the averaging is done, then gets the trace
+        '''
+        #turn on the average trigger
+        self.average_trigger(1)
+        self.avgnum(number)
+        self.trigger_source('BUS')
+        self.write(':TRIG:SING')
+        #the next command will hang the kernel until the averaging is done
+        self.ask('*OPC?')
+
+        return self.gettrace()
         
         
         
