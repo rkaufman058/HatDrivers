@@ -113,6 +113,12 @@ class Keysight_MXA_N9020A(VisaInstrument):
                            get_cmd = ':INSTRUMENT?',
                            set_cmd = ':INSTRUMENT {}'
                            )
+        self.add_parameter('avgnum', 
+                           get_cmd = 'AVER:COUN?', 
+                           set_cmd = 'AVER:COUN {}', 
+                           get_parser = int,
+                           vals = vals.Ints(0,10000)
+                           )
         
         #adding trace parameters, only gettable with custom commands below
         self.add_parameter("trace_1", set_cmd = None, get_cmd = self.do_get_trace_1)

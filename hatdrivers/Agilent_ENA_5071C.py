@@ -219,7 +219,7 @@ class Agilent_ENA_5071C(VisaInstrument):
             freqvalues array (Hz)
         '''
         logging.info(__name__ + ' : get f stim data')
-        strdata= str(self._visainstrument.ask(':SENS1:FREQ:DATA?'))
+        strdata= str(self.ask(':SENS1:FREQ:DATA?'))
         return np.array(map(float,strdata.split(',')))
     def getpdata(self):
         '''
@@ -231,7 +231,7 @@ class Agilent_ENA_5071C(VisaInstrument):
             probe power range (numpy array)
         '''
         logging.debug(__name__ + ' : get the probe power sweep range')
-        return np.linspace(self.get_power_start(), self.get_power_stop(), 1601)
+        return np.linspace(self.power_start(), self.power_stop(), 1601)
         
     def set_bundle(self, bundle):
         '''
@@ -269,17 +269,23 @@ class Agilent_ENA_5071C(VisaInstrument):
         logging.debug(__name__+": data to mem called")
         self.write(":CALC1:MATH:MEM")
     def average(self, number): 
-        #TODO: THIS DOES NOT WORK ABOVE 9 AVERAGES UNLESS THE DEFAULT VISA TIMEOUT IS INCREASED
+        #setting averaging timeout, it takes 52.02s for 100 traces to average with 1601 points and 2kHz IFBW, so 
         '''
         Sets the number of averages taken, waits until the averaging is done, then gets the trace
         '''
+        s_per_trace = 54/100
         #turn on the average trigger
+        prev_timeout = self.timeout()
+        self.timeout(number*s_per_trace)
         self.average_trigger(1)
         self.avgnum(number)
         self.trigger_source('BUS')
         self.write(':TRIG:SING')
         #the next command will hang the kernel until the averaging is done
         self.ask('*OPC?')
+        
+        #reset the timeout
+        self.timeout(prev_timeout)
 
         return self.gettrace()
         

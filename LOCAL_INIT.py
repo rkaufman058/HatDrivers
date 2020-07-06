@@ -24,15 +24,15 @@ from hatdrivers.Keysight_MXA_N9020A import Keysight_MXA_N9020A
 Instrument.close_all()
 
 MXA = Keysight_MXA_N9020A("MXA", address = 'TCPIP0::169.254.180.116::INSTR')
-#%%
+
 VNA = Agilent_ENA_5071C("vna", address = "TCPIP0::169.254.152.68::inst0::INSTR", timeout = 30)
 
 SigGen = Keysight_N5183B("SigGen", address = "TCPIP0::169.254.29.44::inst0::INSTR")
 QGen = Keysight_N5183B("QGen", address = "TCPIP0::169.254.161.164::inst0::INSTR")
-yoko2 = YOKO('yoko2', address = "TCPIP::169.254.47.131::inst0::INSTR")
+# yoko2 = YOKO('yoko2', address = "TCPIP::169.254.47.131::inst0::INSTR")
 
-dll_path = r'C:\Users\Hatlab_3\Desktop\RK_Scripts\New_Drivers\HatDrivers\DLL\sc5511a.dll'
-SigCore5 = SignalCore_sc5511a('SigCore5', dll = ctypes.CDLL(dll_path), serial_number = b'10001852')
+# dll_path = r'C:\Users\Hatlab_3\Desktop\RK_Scripts\New_Drivers\HatDrivers\DLL\sc5511a.dll'
+# SigCore5 = SignalCore_sc5511a('SigCore5', dll = ctypes.CDLL(dll_path), serial_number = b'10001852')
 
 #Switches need to be initialized externally, then fed into the switch_control file explicitly now
 SWT1 = MiniCircuits_Switch('SWT1',address = 'http://169.254.47.255')
@@ -84,7 +84,8 @@ swt_modes = { '1_to_G':['1x00xxx0','xxx11010'],
               '3_to_D': ['xxxxxxxx','xx0xxx0x'],
               
               'flake_ref': ['xxxx10x1','x0xx0010'],
-              'flake_trans': ['01xoxxx0','x0xx0010'] } 
+              'flake_trans_VNA': ['01xoxxx0','00xx0010'], 
+              'flake_trans_SA': ['01xoxxx0','10xx0010']} 
 
 SWT = SWTCTRL(SWT1,SWT2,swt_modes)
 
