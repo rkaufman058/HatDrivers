@@ -121,7 +121,8 @@ class Keysight_MXA_N9020A(VisAInstrument):
         self.add_parameter("trace_4", set_cmd = None, get_cmd = self.do_get_trace_4)
         self.add_parameter("trace_5", set_cmd = None, get_cmd = self.do_get_trace_5)
         self.add_parameter("trace_6", set_cmd = None, get_cmd = self.do_get_trace_6)
-                           
+        
+        self.connect_message()
         
         
     def do_get_trace_1(self):
