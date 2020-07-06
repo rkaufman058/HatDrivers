@@ -269,7 +269,7 @@ class Agilent_ENA_5071C(VisaInstrument):
         logging.debug(__name__+": data to mem called")
         self.write(":CALC1:MATH:MEM")
     def average(self, number): 
-        #THIS DOES NOT WORK ABOVE 9 AVERAGES UNLESS THE DEFAULT VISA TIMEOUT IS CHANGED. YES, I KNOW IT SUCKS
+        #TODO: THIS DOES NOT WORK ABOVE 9 AVERAGES UNLESS THE DEFAULT VISA TIMEOUT IS INCREASED
         '''
         Sets the number of averages taken, waits until the averaging is done, then gets the trace
         '''
