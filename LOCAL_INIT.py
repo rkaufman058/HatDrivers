@@ -18,11 +18,15 @@ from hatdrivers.Yokogawa_GS200 import YOKO
 from hatdrivers.SignalCore_sc5511a import SignalCore_sc5511a
 from hatdrivers.MiniCircuits_Switch import MiniCircuits_Switch
 from hatdrivers.switch_control import SWT as SWTCTRL
+from hatdrivers.Keysight_MXA_N9020A import Keysight_MXA_N9020A
 # from hatdrivers.YROKO import YROKO_Client
 
 Instrument.close_all()
-VNA = Agilent_ENA_5071C("vna", address = "TCPIP0::169.254.152.68::inst0::INSTR", timeout = 30)
+
+MXA = Keysight_MXA_N9020A("MXA", address = 'TCPIP0::169.254.180.116::INSTR')
 #%%
+VNA = Agilent_ENA_5071C("vna", address = "TCPIP0::169.254.152.68::inst0::INSTR", timeout = 30)
+
 SigGen = Keysight_N5183B("SigGen", address = "TCPIP0::169.254.29.44::inst0::INSTR")
 QGen = Keysight_N5183B("QGen", address = "TCPIP0::169.254.161.164::inst0::INSTR")
 yoko2 = YOKO('yoko2', address = "TCPIP::169.254.47.131::inst0::INSTR")
@@ -33,6 +37,8 @@ SigCore5 = SignalCore_sc5511a('SigCore5', dll = ctypes.CDLL(dll_path), serial_nu
 #Switches need to be initialized externally, then fed into the switch_control file explicitly now
 SWT1 = MiniCircuits_Switch('SWT1',address = 'http://169.254.47.255')
 SWT2 = MiniCircuits_Switch('SWT2',address = 'http://169.254.47.253')
+
+
 
 swt_modes = { '1_to_G':['1x00xxx0','xxx11010'],
               '1_to_B':['1x00xxx0','x0xx0010'],

@@ -14,7 +14,7 @@ from qcodes import (Instrument, VisaInstrument,
                     ManualParameter, MultiParameter,
                     validators as vals)
 
-class Keysight_MXA_N9020A(VisAInstrument): 
+class Keysight_MXA_N9020A(VisaInstrument): 
     def __init__(self, name, address = None, **kwargs):
         '''
         Initializes the Keysight_MXA_N9020A, and communicates with the wrapper.
@@ -32,20 +32,20 @@ class Keysight_MXA_N9020A(VisAInstrument):
 
         self.add_parameter("fstart", 
                            get_cmd = 'FREQ:STAR?', 
-                           set_cmd = 'FREQ:STAR {}, 
-                           vals = vals.Numbers(10)
+                           set_cmd = 'FREQ:STAR {}', 
+                           vals = vals.Numbers(10),
                            get_parser = float, 
                            unit = 'Hz')
         self.add_parameter("fstop", 
                            get_cmd = 'FREQ:STOP?', 
                            set_cmd = 'FREQ:STOP {}', 
-                           vals = vals.Numbers(10)
+                           vals = vals.Numbers(10),
                            get_parser = float, 
                            unit = 'Hz')
         self.add_parameter("fcenter", 
-                           get_cmd = , 
-                           set_cmd = , 
-                           vals = vals.Numbers(10)
+                           get_cmd = 'FREQ:CENT?', 
+                           set_cmd = 'FREQ:CENT {}', 
+                           vals = vals.Numbers(10),
                            get_parser = float, 
                            unit = 'Hz')
         self.add_parameter("fspan", 
@@ -58,31 +58,31 @@ class Keysight_MXA_N9020A(VisAInstrument):
         self.add_parameter("RBW", 
                            get_cmd = 'BAND?', 
                            set_cmd = 'BAND {}', 
-                           vals = vals.Numbers(10)
+                           vals = vals.Numbers(10),
                            get_parser = float, 
                            unit = 'Hz')
         self.add_parameter("RBW_auto", 
                            get_cmd = 'BAND:AUTO?', 
                            set_cmd = 'BAND:AUTO {}', 
-                           vals = vals.Ints(0,1)
+                           vals = vals.Ints(0,1),
                            get_parser = int
                            )
         self.add_parameter("VBW", 
                            get_cmd = 'BAND:VID?', 
                            set_cmd = 'BAND:VID {}', 
-                           vals = vals.Numbers(1, 8e6)
+                           vals = vals.Numbers(1, 8e6),
                            get_parser = float, 
                            unit = 'Hz')
         self.add_parameter("VBW_auto", 
                            get_cmd = 'BAND:VID:AUTO?', 
                            set_cmd = 'BAND:VID:AUTO {}', 
-                           vals = vals.Ints(0,1)
+                           vals = vals.Ints(0,1),
                            get_parser = int
                            )
         self.add_parameter("trigger_source", 
                            get_cmd = 'TRIG:SOUR?', 
                            set_cmd = 'TRIG:SOUR {}', 
-                           vals = vals.Enum('ext1','ext2','imm')
+                           vals = vals.Enum('ext1','ext2','imm'),
                            get_parser = str
                            )
         self.add_parameter("sweep_time", 
@@ -94,12 +94,12 @@ class Keysight_MXA_N9020A(VisAInstrument):
         self.add_parameter("sweep_time_auto", 
                            get_cmd = 'SWE:TIME:AUTO?', 
                            set_cmd = 'SWE:TIME:AUTO {}', 
-                           vals = vals.Ints(0,1)
+                           vals = vals.Ints(0,1),
                            get_parser = int
                            )
         self.add_parameter("sweep_time_auto_rules", 
                            get_cmd = 'SWE:TIME:AUTO:RUL?',
-                           set_cmd = 'SWE:TIME:AUTO:RUL {}'
+                           set_cmd = 'SWE:TIME:AUTO:RUL {}',
                            vals = vals.Enum('norm', 'normal', 'accuracy','acc', 'sres', 'sresponse'),
                            get_parser = str
                            )
@@ -110,7 +110,7 @@ class Keysight_MXA_N9020A(VisAInstrument):
                            get_parser = float
                            )
         self.add_parameter('mode', 
-                           get_cmd = ':INSTRUMENT?'
+                           get_cmd = ':INSTRUMENT?',
                            set_cmd = ':INSTRUMENT {}'
                            )
         
