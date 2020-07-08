@@ -207,6 +207,23 @@ class Keysight_N5183B(VisaInstrument):
         '''
         self._visainstrument.write('*RST')
         
+    def save_important_info(self, savedir = None):
+        if savedir == None:
+            import easygui 
+            savedir = easygui.diropenbox("Choose where to save generator "+self.name+" info: ")
+            assert savedir != None
+        filename = self.name+".txt"
+        filepath = savedir+'\\'+filename
+        file = open(filepath, 'w')
+        file.write(self.name+'\n')
+        file.write("Power: "+str(self.power())+'\n')
+        file.write("Frequency: "+str(self.frequency()))
+        print("Power: "+str(self.power())+'\n'+"Frequency: "+str(self.frequency()))
+        file.close()
+        return filepath
+        
+            
+        
     def get_all(self):
 
         self.output_status()

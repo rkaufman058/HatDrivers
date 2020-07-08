@@ -24,9 +24,7 @@ from hatdrivers.Keysight_MXA_N9020A import Keysight_MXA_N9020A
 Instrument.close_all()
 
 MXA = Keysight_MXA_N9020A("MXA", address = 'TCPIP0::169.254.180.116::INSTR')
-
-VNA = Agilent_ENA_5071C("vna", address = "TCPIP0::169.254.152.68::inst0::INSTR", timeout = 30)
-
+VNA = Agilent_ENA_5071C("VNA", address = "TCPIP0::169.254.152.68::inst0::INSTR", timeout = 30)
 SigGen = Keysight_N5183B("SigGen", address = "TCPIP0::169.254.29.44::inst0::INSTR")
 QGen = Keysight_N5183B("QGen", address = "TCPIP0::169.254.161.164::inst0::INSTR")
 # yoko2 = YOKO('yoko2', address = "TCPIP::169.254.47.131::inst0::INSTR")

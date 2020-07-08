@@ -188,6 +188,12 @@ class Agilent_ENA_5071C(VisaInstrument):
         self.add_parameter('pdata', 
                            set_cmd = None, 
                            get_cmd = self.getpdata)
+        self.add_parameter('sweep_time', 
+                           get_cmd = ':SENS1:SWE:TIME?', 
+                           set_cmd = None, #generally just adjust ifbw and number of pts to change it,
+                           get_parser = float,
+                           unit = 's'
+                           )
         self.connect_message()
         
         
@@ -207,6 +213,8 @@ class Agilent_ENA_5071C(VisaInstrument):
         strdata= str(self.ask(':CALC:DATA:FDATa?'))
         data= np.array(list(map(float,strdata.split(','))))
         data=data.reshape((int(np.size(data)/2)),2)
+        
+        self.trigger_source('INT')
         return data.transpose()
         
     def getfdata(self):
@@ -220,7 +228,7 @@ class Agilent_ENA_5071C(VisaInstrument):
         '''
         logging.info(__name__ + ' : get f stim data')
         strdata= str(self.ask(':SENS1:FREQ:DATA?'))
-        return np.array(map(float,strdata.split(',')))
+        return np.array(list(map(float,strdata.split(','))))
     def getpdata(self):
         '''
         Get the probe power sweep range
@@ -273,7 +281,7 @@ class Agilent_ENA_5071C(VisaInstrument):
         '''
         Sets the number of averages taken, waits until the averaging is done, then gets the trace
         '''
-        s_per_trace = 54/100
+        s_per_trace = self.sweep_time()*1.05 #wait just a little longer for safety
         #turn on the average trigger
         prev_timeout = self.timeout()
         self.timeout(number*s_per_trace)
@@ -282,13 +290,48 @@ class Agilent_ENA_5071C(VisaInstrument):
         self.trigger_source('BUS')
         self.write(':TRIG:SING')
         #the next command will hang the kernel until the averaging is done
+        print("Waiting {:.3f} seconds for {} averages...".format(number*s_per_trace, number))
         self.ask('*OPC?')
         
         #reset the timeout
         self.timeout(prev_timeout)
 
         return self.gettrace()
+    
+    def savetrace(self, avgnum = 1, savepath = None): 
+        if savepath == None:
+            import easygui 
+            savepath = easygui.fileopenbox("Choose file to save trace information: ")
+            assert savepath != None
+        fdata = self.getfdata()
+        prev_trform = self.trform()
+        self.trform('PLOG')
+        tracedata = self.average(avgnum)
+        self.trform(prev_trform)
+        
+        import h5py
+        file = h5py.File(savepath, 'w')
+        file.create_dataset("Freqs", data = fdata)
+        file.create_dataset("Phase", data = tracedata[1])
+        file.create_dataset("Power", data = tracedata[0])
+        file.close()
         
         
-        
+    def save_important_info(self, savedir = None):
+        if savedir == None:
+            import easygui 
+            savedir = easygui.diropenbox("Choose where to save VNA info: ")
+            assert savedir != None
+        filename = self.name+".txt"
+        filepath = savedir+'\\'+filename
+        file = open(filepath, 'w')
+        file.write(self.name+'\n')
+        file.write("Power: "+str(self.power())+'\n')
+        file.write("Frequency: "+str(self.fcenter())+'\n')
+        file.write("Span: "+str(self.fspan())+'\n')
+        print("Power: "+str(self.power())+'\n')
+        print("Frequency: "+str(self.fcenter())+'\n')
+        print("Span: "+str(self.fspan())+'\n')
+        file.close()
+        return filepath
         
