@@ -78,7 +78,7 @@ class Agilent_ENA_5071C(VisaInstrument):
                            get_parser = int
                            )
         
-        self.add_parameter('nfpts', 
+        self.add_parameter('num_points', 
                            get_cmd = ':SENS1:SWE:POIN?', 
                            set_cmd = ':SENS1:SWE:POIN {}', 
                            vals = vals.Ints(1,1601), 
@@ -87,7 +87,7 @@ class Agilent_ENA_5071C(VisaInstrument):
         self.add_parameter('ifbw', 
                            get_cmd = ':SENS1:BWID?', 
                            set_cmd = ':SENS1:BWID {}', 
-                           vals = vals.Numbers(), #TODO: get range
+                           vals = vals.Numbers(10,1.5e6),
                            get_parser = float)
         self.add_parameter('power', 
                            get_cmd = ":SOUR1:POW?", 
@@ -209,11 +209,14 @@ class Agilent_ENA_5071C(VisaInstrument):
         Output:
             mags (dB) phases (rad)
         '''
+        prev_trform = self.trform()
+        self.trform('PLOG')
+        self.trigger_source('BUS')
         logging.info(__name__ + ' : get amp, phase stim data')
         strdata= str(self.ask(':CALC:DATA:FDATa?'))
         data= np.array(list(map(float,strdata.split(','))))
         data=data.reshape((int(np.size(data)/2)),2)
-        
+        self.trform(prev_trform)
         self.trigger_source('INT')
         return data.transpose()
         
@@ -281,22 +284,29 @@ class Agilent_ENA_5071C(VisaInstrument):
         '''
         Sets the number of averages taken, waits until the averaging is done, then gets the trace
         '''
-        s_per_trace = self.sweep_time()*1.05 #wait just a little longer for safety
-        #turn on the average trigger
-        prev_timeout = self.timeout()
-        self.timeout(number*s_per_trace)
-        self.average_trigger(1)
-        self.avgnum(number)
-        self.trigger_source('BUS')
-        self.write(':TRIG:SING')
-        #the next command will hang the kernel until the averaging is done
-        print("Waiting {:.3f} seconds for {} averages...".format(number*s_per_trace, number))
-        self.ask('*OPC?')
+        assert number > 0
         
-        #reset the timeout
-        self.timeout(prev_timeout)
-
-        return self.gettrace()
+        if number == 1:
+            return self.gettrace()
+        else: 
+            s_per_trace = self.sweep_time()*1.08 #wait just a little longer for safety #TODO: find a way to make this better than 8%
+            #turn on the average trigger
+            prev_timeout = self.timeout()
+            self.timeout(number*s_per_trace)
+            self.averaging(1)
+            self.average_trigger(1)
+            self.avgnum(number)
+            self.trigger_source('BUS')
+            self.average_restart()
+            print("Waiting {:.3f} seconds for {} averages...".format(number*s_per_trace, number))
+            self.write(':TRIG:SING')
+            #the next command will hang the kernel until the averaging is done
+            self.ask('*OPC?')
+            
+            #reset the timeout
+            self.timeout(prev_timeout)
+    
+            return self.gettrace()
     
     def savetrace(self, avgnum = 1, savepath = None): 
         if savepath == None:
@@ -329,9 +339,11 @@ class Agilent_ENA_5071C(VisaInstrument):
         file.write("Power: "+str(self.power())+'\n')
         file.write("Frequency: "+str(self.fcenter())+'\n')
         file.write("Span: "+str(self.fspan())+'\n')
+        file.write("EDel: "+str(self.electrical_delay())+'\n')
         print("Power: "+str(self.power())+'\n')
         print("Frequency: "+str(self.fcenter())+'\n')
         print("Span: "+str(self.fspan())+'\n')
+        print("EDel: "+str(self.electrical_delay())+'\n')
         file.close()
         return filepath
         
