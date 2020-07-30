@@ -199,7 +199,7 @@ class Agilent_ENA_5071C(VisaInstrument):
         
 ####################### Custom Functions 
     def average_restart(self):
-        self.write('SENS1:AVER:CLE')    
+        self.write('SENS1:AVER:CLE')  
     def gettrace(self):
         '''
         Gets amp/phase stimulus data, returns 2 arrays
@@ -209,6 +209,7 @@ class Agilent_ENA_5071C(VisaInstrument):
         Output:
             mags (dB) phases (rad)
         '''
+        
         prev_trform = self.trform()
         self.trform('PLOG')
         self.trigger_source('BUS')
@@ -216,8 +217,7 @@ class Agilent_ENA_5071C(VisaInstrument):
         strdata= str(self.ask(':CALC:DATA:FDATa?'))
         data= np.array(list(map(float,strdata.split(','))))
         data=data.reshape((int(np.size(data)/2)),2)
-        self.trform(prev_trform)
-        self.trigger_source('INT')
+        print("Trace Acquired")
         return data.transpose()
         
     def getfdata(self):
@@ -287,6 +287,7 @@ class Agilent_ENA_5071C(VisaInstrument):
         assert number > 0
         
         if number == 1:
+            self.trigger()
             return self.gettrace()
         else: 
             s_per_trace = self.sweep_time()*1.08 #wait just a little longer for safety #TODO: find a way to make this better than 8%
@@ -340,10 +341,11 @@ class Agilent_ENA_5071C(VisaInstrument):
         file.write("Frequency: "+str(self.fcenter())+'\n')
         file.write("Span: "+str(self.fspan())+'\n')
         file.write("EDel: "+str(self.electrical_delay())+'\n')
-        print("Power: "+str(self.power())+'\n')
-        print("Frequency: "+str(self.fcenter())+'\n')
-        print("Span: "+str(self.fspan())+'\n')
-        print("EDel: "+str(self.electrical_delay())+'\n')
+        file.write("Num_Pts: "+str(self.num_points())+'\n')
+        print("Power: "+str(self.power())+'\n'+"Frequency: "+str(self.fcenter())+'\n'+"Span: "+str(self.fspan())+'\n'+"EDel: "+str(self.electrical_delay())+'\n'+"Num_Pts: "+str(self.num_points())+'\n')
         file.close()
         return filepath
-        
+    
+    def trigger(self): 
+        self.write(':TRIG:SING')
+        return None

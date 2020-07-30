@@ -18,7 +18,7 @@ from qcodes import (Instrument, VisaInstrument,
                     validators as vals)
 
 
-class SWT(): #no need to subclass object anymore, thankfully
+class SWT():
     '''
     This is a class that is used to control all the Mini Circuits swtiches we have.
     To use this in the qtlab, do:
