@@ -303,10 +303,8 @@ class Agilent_ENA_5071C(VisaInstrument):
             self.write(':TRIG:SING')
             #the next command will hang the kernel until the averaging is done
             self.ask('*OPC?')
-            
             #reset the timeout
             self.timeout(prev_timeout)
-    
             return self.gettrace()
     
     def savetrace(self, avgnum = 1, savepath = None): 
@@ -319,6 +317,7 @@ class Agilent_ENA_5071C(VisaInstrument):
         self.trform('PLOG')
         tracedata = self.average(avgnum)
         self.trform(prev_trform)
+        self.trigger_source('INT')
         
         import h5py
         file = h5py.File(savepath, 'w')
@@ -349,3 +348,10 @@ class Agilent_ENA_5071C(VisaInstrument):
     def trigger(self): 
         self.write(':TRIG:SING')
         return None
+    def set_to_manual(self): 
+        self.rfout(1)
+        self.averaging(1)
+        self.avgnum(1)
+        self.average_trigger(0)
+        self.trform('PHAS')
+        self.trigger_source('INT')
