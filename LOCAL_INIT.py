@@ -20,9 +20,7 @@ from hatdrivers.MiniCircuits_Switch import MiniCircuits_Switch
 from hatdrivers.switch_control import SWT as SWTCTRL
 from hatdrivers.Keysight_MXA_N9020A import Keysight_MXA_N9020A
 # from hatdrivers.YROKO import YROKO_Client
-
-Instrument.close_all()
-
+#%%
 # MXA = Keysight_MXA_N9020A("MXA", address = 'TCPIP0::169.254.180.116::INSTR')
 VNA = Agilent_ENA_5071C("VNA", address = "TCPIP0::169.254.152.68::inst0::INSTR", timeout = 30)
 SigGen = Keysight_N5183B("SigGen", address = "TCPIP0::169.254.29.44::inst0::INSTR")
@@ -36,7 +34,7 @@ SigCore5 = SignalCore_sc5511a('SigCore5', dll = ctypes.CDLL(dll_path), serial_nu
 SWT1 = MiniCircuits_Switch('SWT1',address = 'http://169.254.47.255')
 SWT2 = MiniCircuits_Switch('SWT2',address = 'http://169.254.47.253')
 
-
+#%%update SWT Config
 
 swt_modes = { '1_to_G':['1x00xxx0','xxx11010'],
               '1_to_B':['1x00xxx0','x0xx0010'],
@@ -79,7 +77,9 @@ swt_modes = { '1_to_G':['1x00xxx0','xxx11010'],
               '5_to_A_trans':['xxxx10x1','x1xx0111'],
 
               '8_to_A': ['xxxxx111','01xx0010'],
-              '3_to_D': ['xxxxxxxx','xx0xxx0x'],
+              '8_to_B': ['xxxxx111','x0xx0010'],
+              '8_to_E': ['xxxxx111','xx101010'],
+              '3_to_D': ['xxxxx101','xx0xxx0x'],
               
               'flake_ref': ['xxxx10x1','x0xx0010'],
               'flake_trans_VNA': ['01xoxxx0','00xx0010'], 
@@ -93,9 +93,9 @@ swt_modes = { '1_to_G':['1x00xxx0','xxx11010'],
               'F':['xxxxxxxx', ''],
               'G':[],
               
+              '4_to_C': ['xxx1xxx0','01xx0010']
+              
               } 
-
-
 
 SWT = SWTCTRL(SWT1,SWT2,swt_modes)
 

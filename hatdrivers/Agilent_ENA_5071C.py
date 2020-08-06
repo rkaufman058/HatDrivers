@@ -213,8 +213,7 @@ class Agilent_ENA_5071C(VisaInstrument):
         prev_trform = self.trform()
         self.trform('PLOG')
         self.trigger_source('BUS')
-        logging.info(__name__ + ' : get amp, phase stim data')
-        strdata= str(self.ask(':CALC:DATA:FDATa?'))
+        strdata= str(self.ask(':CALC:DATA:FDATA?'))
         data= np.array(list(map(float,strdata.split(','))))
         data=data.reshape((int(np.size(data)/2)),2)
         print("Trace Acquired")
@@ -286,14 +285,19 @@ class Agilent_ENA_5071C(VisaInstrument):
         '''
         assert number > 0
         
-        if number == 1:
+        s_per_trace = self.sweep_time()
+        buffer_time = 0.2 #s
+        if number == 0:
+            self.averaging(0)
+            self.average_trigger(0)
+            self.timeout(number*s_per_trace+buffer_time)
             self.trigger()
             return self.gettrace()
         else: 
-            s_per_trace = self.sweep_time()*1.08 #wait just a little longer for safety #TODO: find a way to make this better than 8%
+            #wait just a little longer for safety #TODO: find a way to make this better than 8%
             #turn on the average trigger
             prev_timeout = self.timeout()
-            self.timeout(number*s_per_trace)
+            self.timeout(number*s_per_trace+buffer_time)
             self.averaging(1)
             self.average_trigger(1)
             self.avgnum(number)
@@ -307,10 +311,10 @@ class Agilent_ENA_5071C(VisaInstrument):
             self.timeout(prev_timeout)
             return self.gettrace()
     
-    def savetrace(self, avgnum = 1, savepath = None): 
+    def savetrace(self, avgnum = 3, savepath = None): 
         if savepath == None:
             import easygui 
-            savepath = easygui.fileopenbox("Choose file to save trace information: ")
+            savepath = easygui.filesavebox("Choose file to save trace information: ")
             assert savepath != None
         fdata = self.getfdata()
         prev_trform = self.trform()
