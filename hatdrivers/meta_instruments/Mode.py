@@ -22,7 +22,7 @@ class mode(Instrument):
     def __init__(self, name, **kwargs) -> None: 
         super().__init__(name, **kwargs)
         
-        self.add_parameter('frequency', 
+        self.add_parameter('fcenter', 
                            set_cmd = None, 
                            # initial_value = par_dict["frequency"],
                            vals = vals.Numbers(0),
@@ -63,15 +63,30 @@ class mode(Instrument):
                             vals = vals.Numbers(),
                            unit = 'Deg'
                            )
+        self.add_parameter('bias_current', 
+                           vals = vals.Numbers(),
+                           set_cmd = None,
+                           unit = 'A')
+        self.add_parameter('ifbw', 
+                           vals = vals.Numbers(),
+                           set_cmd = None,
+                           unit = 'Hz')
+        self.add_parameter('avgnum', 
+                           vals = vals.Numbers(),
+                           set_cmd = None,
+                           unit = 'Hz')
+        
     def pull_from_VNA(self, VNA): #this needs to be the whole damn instrument
-        self.frequency(VNA.fcenter())
+        self.fcenter(VNA.fcenter())
         self.span(VNA.fspan())
         self.electrical_delay(VNA.electrical_delay())
         self.power(VNA.power())
         self.phase_offset(VNA.phase_offset())
+        self.ifbw(VNA.ifbw())
+        self.avgnum(VNA.avgnum())
     
     def push_to_VNA(self, VNA, SWT = None):
-        if self.frequency() != None: 
+        if self.fcenter() != None: 
             VNA.fcenter(self.frequency())
         if self.span() != None:
             VNA.fspan(self.span())
@@ -83,6 +98,12 @@ class mode(Instrument):
             SWT.set_mode_dict(self.mode_dict())
         if self.phase_offset() != None:
             VNA.phase_offset(self.phase_offset())
+        if self.ifbw() != None: 
+            VNA.ifbw(self.ifbw())
+        if self.avgnum != None: 
+            VNA.avgnum(self.avgnum())
+            VNA.averaging(1)
+        
     def print(self):
         return ser.toParamDict([self])
     
@@ -90,3 +111,15 @@ class mode(Instrument):
         if cwd == None: 
             cwd = easygui.diropenbox()
         ser.saveParamsToFile([self], cwd+'\\'+self.name+'.txt')
+        
+    def load(self, filepath = None): 
+        if filepath == None: 
+            filepath = easygui.fileopenbox()
+        ser.loadParamsFromFile()
+    def savetrace(self, VNA, cwd = None):
+        self.pull_from_VNA(VNA)
+        if cwd == None: 
+            cwd = easygui.diropenbox()
+        ser.saveParamsToFile([self], cwd+'\\'+self.name+'.txt')
+        VNA.savetrace(savedir = cwd+'\\'+self.name+'_trace.h5')
+        

@@ -20,81 +20,44 @@ from hatdrivers.MiniCircuits_Switch import MiniCircuits_Switch
 from hatdrivers.switch_control import SWT as SWTCTRL
 from hatdrivers.Keysight_MXA_N9020A import Keysight_MXA_N9020A
 # from hatdrivers.YROKO import YROKO_Client
+#Metainstruments amd tools ... 
+
+from qcodes import (Instrument, VisaInstrument,
+                    ManualParameter, MultiParameter,
+                    validators as vals, Parameter, Station)
+import easygui
+from hatdrivers.meta_instruments import Mode
+
 #%%
 # MXA = Keysight_MXA_N9020A("MXA", address = 'TCPIP0::169.254.180.116::INSTR')
 VNA = Agilent_ENA_5071C("VNA", address = "TCPIP0::169.254.152.68::inst0::INSTR", timeout = 30)
 SigGen = Keysight_N5183B("SigGen", address = "TCPIP0::169.254.29.44::inst0::INSTR")
 QGen = Keysight_N5183B("QGen", address = "TCPIP0::169.254.161.164::inst0::INSTR")
-yoko2 = YOKO('yoko2', address = "TCPIP::169.254.47.131::INSTR")
+try: 
+    yoko2 = YOKO('yoko2', address = "TCPIP::169.254.47.131::INSTR")
+except: 
+    print("YOKO not connected")
 
 dll_path = r'C:\Users\Hatlab_3\Desktop\RK_Scripts\New_Drivers\HatDrivers\DLL\sc5511a.dll'
 SigCore5 = SignalCore_sc5511a('SigCore5', dll = ctypes.CDLL(dll_path), serial_number = b'10001852')
 
-#Switches need to be initialized externally, then fed into the switch_control file explicitly now
+# Switches need to be initialized externally, then fed into the switch_control file explicitly now
 SWT1 = MiniCircuits_Switch('SWT1',address = 'http://169.254.47.255')
 SWT2 = MiniCircuits_Switch('SWT2',address = 'http://169.254.47.253')
 
 #%%update SWT Config
 
-swt_modes = { '1_to_G':['1x00xxx0','xxx11010'],
-              '1_to_B':['1x00xxx0','x0xx0010'],
-              '1_to_F':['1x00xxx0','xxx11111'],
-              '1_to_E':['1x00xxx0','xx101010'],
-                          
-              '5_to_B':['xxxx10x1','x0xx0010'],              
-              '5_to_G':['xxxx10x1','xxx11010'],              
-              '5_to_F':['xxxx10x1','xxx11111'],              
-              '5_to_E':['xxxx10x1','xx101010'],              
-
-              '11_to_F':['1x10xxx0','xxx11010'],              
-              '11_to_B':['1x10xxx0','x0xx0010'],              
-              '11_to_E':['1x10xxx0','xx101010'], 
-              '11_to_G':['1x10xxx0','xxx11010'],
-              '11_to_A':['1x10xxx0','1x1xxx0x'],  
-
-              '2_to_E':['xxxx00x1','xx101010'], 
-              '2_to_B':['xxxx00x1','x0xx0010'], 
-              '2_to_F':['xxxx00x1','xxx11111'], 
-              '2_to_G':['xxxx00x1','xxx11010'], 
-
-              '5_to_F_trans':['xxxx10x1','x1xx0111'],              
-              '5_to_E_trans':['xxxx10x1','xx101111'],              
-              '5_to_G_trans':['xxxx10x1','xxx11111'], 
-
-              '2_to_B_trans':['xxxx00x1','x0xx0111'],   
-              '2_to_F_trans':['xxxx00x1','x1xx0111'],
-              '2_to_G_trans':['xxxx00x1','xxx11111'],   
-                                         
-              '11_to_B_trans':['1x10xxx0','x0xx0111'],              
-              '11_to_E_trans':['1x10xxx0','xx101111'],              
-              '11_to_G_trans':['1x10xxx0','xxx11111'],
-                                                                    
-              '1_to_B_trans':['1x00xxx0','x0xx0111'],              
-              '1_to_E_trans':['1x00xxx0','xx101111'],              
-              '1_to_F_trans':['1x00xxx0','x1xx0111'],
-
-              '8_to_B_trans':['xxxxx111','x0xx0111'],
-              '5_to_A_trans':['xxxx10x1','x1xx0111'],
-
-              '8_to_A': ['xxxxx111','01xx0010'],
-              '8_to_B': ['xxxxx111','x0xx0010'],
-              '8_to_E': ['xxxxx111','xx101010'],
-              '3_to_D': ['xxxxx101','xx0xxx0x'],
-              
-              'flake_ref': ['xxxx10x1','x0xx0010'],
-              'flake_trans_VNA': ['01xoxxx0','00xx0010'], 
-              'flake_trans_SA': ['01xoxxx0','10xx0010'],
-              
-              'A':['xxxxxxxx','x1xx0111'],
-              'B':['xxxxxxxx','x0xx0111'],
-              'C':[],
-              'D':[],
-              'E':[],
-              'F':['xxxxxxxx', ''],
-              'G':[],
-              
-              '4_to_C': ['xxx1xxx0','01xx0010']
-              
+swt_modes = {'1': ['0xxxxxxx','xxxxxxxx'],
+             '2': ['10xxxxxx','xxxxxxxx'],
+             '5': ['11xx0xxx','xxxxxxxx'],
+             '7': ['11xx10xx','xxxxxxxx'],
+             '8': ['11xx11xx','xxxxxxxx'],
+             'A': ['xxxxxxxx','000xx0x0'],
+             'B': ['xxxxxxxx','001xx0x0'],
+             'C': ['xxxxxxxx','0100x0x0'],
+             'D': ['xxxxxxxx','0101x0x0'],
+             'E': ['xxxxxxxx','0xxxx001'],
+             'F': ['xxxxxxxx','0xxxx011'],
               } 
 
 SWT = SWTCTRL(SWT1,SWT2,swt_modes)
