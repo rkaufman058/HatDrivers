@@ -85,9 +85,12 @@ class mode(Instrument):
         self.ifbw(VNA.ifbw())
         self.avgnum(VNA.avgnum())
     
+    def pull(self, VNA = None, CS = None, Gen1 = None, Gen2 = None): #TODO: make general way of recording all instruments into here
+        return None
+    
     def push_to_VNA(self, VNA, SWT = None):
         if self.fcenter() != None: 
-            VNA.fcenter(self.frequency())
+            VNA.fcenter(self.fcenter())
         if self.span() != None:
             VNA.fspan(self.span())
         if self.electrical_delay() != None: 
@@ -100,7 +103,7 @@ class mode(Instrument):
             VNA.phase_offset(self.phase_offset())
         if self.ifbw() != None: 
             VNA.ifbw(self.ifbw())
-        if self.avgnum != None: 
+        if self.avgnum() != None: 
             VNA.avgnum(self.avgnum())
             VNA.averaging(1)
         
@@ -116,10 +119,11 @@ class mode(Instrument):
         if filepath == None: 
             filepath = easygui.fileopenbox()
         ser.loadParamsFromFile()
-    def savetrace(self, VNA, cwd = None):
+    def savetrace(self, VNA, cwd = None, avgnum = 1):
+        self.push_to_VNA(VNA)
         self.pull_from_VNA(VNA)
         if cwd == None: 
             cwd = easygui.diropenbox()
         ser.saveParamsToFile([self], cwd+'\\'+self.name+'.txt')
-        VNA.savetrace(savedir = cwd+'\\'+self.name+'_trace.h5')
+        VNA.savetrace(avgnum = avgnum, savedir = cwd+'\\'+self.name+'_trace.h5')
         

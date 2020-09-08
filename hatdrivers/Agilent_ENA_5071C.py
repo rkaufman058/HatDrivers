@@ -207,16 +207,11 @@ class Agilent_ENA_5071C(VisaInstrument):
         Input:
             None
         Output:
-            mags (dB) phases (rad)
+            [[mags (dB)], [phases (rad)]]
         '''
-        
-        prev_trform = self.trform()
-        self.trform('PLOG')
-        self.trigger_source('BUS')
         strdata= str(self.ask(':CALC:DATA:FDATA?'))
         data= np.array(list(map(float,strdata.split(','))))
         data=data.reshape((int(np.size(data)/2)),2)
-        print("Trace Acquired")
         return data.transpose()
         
     def getfdata(self):
@@ -285,9 +280,13 @@ class Agilent_ENA_5071C(VisaInstrument):
         '''
         assert number > 0
         
+        prev_trform = self.trform()
+        self.trform('PLOG')
+        self.trigger_source('BUS')
         
-        buffer_time = 0.2 #s
-        if number == 0:
+        buffer_time = 0.5 #s
+        if number == 1:
+           
             self.averaging(0)
             self.average_trigger(0)
             s_per_trace = self.sweep_time()
@@ -297,34 +296,37 @@ class Agilent_ENA_5071C(VisaInstrument):
         else: 
             #wait just a little longer for safety #TODO: find a way to make this better than 8%
             #turn on the average trigger
-            self.trigger_source('BUS')
+            
             self.averaging(1)
             self.average_trigger(1)
+            self.avgnum(number)
             prev_timeout = self.timeout()
             s_per_trace = self.sweep_time()
             self.timeout(number*s_per_trace+buffer_time)
-            self.avgnum(number)
-            self.average_restart()
-            print("Waiting {:.3f} seconds for {} averages...".format(number*s_per_trace, number))
+            print("Waiting {:.3f} seconds for {} averages...".format(self.timeout(), number))
             self.write(':TRIG:SING')
+            # print('triggered')
             #the next command will hang the kernel until the averaging is done
-            self.ask('*OPC?')
-            #reset the timeout
-            self.timeout(prev_timeout)
+            print(self.ask('*OPC?'))
+            # print('timeout check')
             return self.gettrace()
     
     def savetrace(self, avgnum = 3, savedir = None): 
         if savedir == None:
             import easygui 
             savedir = easygui.filesavebox("Choose file to save trace information: ")
-            assert savepath != None
+            assert savedir != None
+            
+        elif savedir == "previous": 
+            savedir = self.previous_save
+            assert savedir != None
         fdata = self.getfdata()
         prev_trform = self.trform()
         self.trform('PLOG')
         tracedata = self.average(avgnum)
         self.trform(prev_trform)
         self.trigger_source('INT')
-        
+        self.previous_save = savedir
         import h5py
         file = h5py.File(savedir, 'w')
         file.create_dataset("VNA Frequency (Hz)", data = fdata)
