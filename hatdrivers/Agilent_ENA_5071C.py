@@ -311,7 +311,7 @@ class Agilent_ENA_5071C(VisaInstrument):
             # print('timeout check')
             return self.gettrace()
     
-    def savetrace(self, avgnum = 3, savedir = None): 
+    def savetrace(self, avgnum = 500, savedir = None): 
         if savedir == None:
             import easygui 
             savedir = easygui.filesavebox("Choose file to save trace information: ")
@@ -330,7 +330,7 @@ class Agilent_ENA_5071C(VisaInstrument):
         import h5py
         file = h5py.File(savedir, 'w')
         file.create_dataset("VNA Frequency (Hz)", data = fdata)
-        file.create_dataset("S11", data = tracedata)
+        file.create_dataset("S21", data = tracedata)
         file.create_dataset("Phase (deg)", data = tracedata[1])
         file.create_dataset("Power (dB)", data = tracedata[0])
         file.close()

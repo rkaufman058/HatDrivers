@@ -33,10 +33,10 @@ from hatdrivers.meta_instruments import Mode
 VNA = Agilent_ENA_5071C("VNA", address = "TCPIP0::169.254.152.68::inst0::INSTR", timeout = 30)
 # SigGen = Keysight_N5183B("SigGen", address = "TCPIP0::169.254.29.44::inst0::INSTR")
 # QGen = Keysight_N5183B("QGen", address = "TCPIP0::169.254.161.164::inst0::INSTR")
-# try: 
-#     yoko2 = YOKO('yoko2', address = "TCPIP::169.254.47.131::INSTR")
-# except: 
-#     print("YOKO not connected")
+try: 
+    yoko2 = YOKO('yoko2', address = "TCPIP::169.254.47.131::INSTR")
+except: 
+    print("YOKO not connected")
 
 # dll_path = r'C:\Users\Hatlab_3\Desktop\RK_Scripts\New_Drivers\HatDrivers\DLL\sc5511a.dll'
 # SigCore5 = SignalCore_sc5511a('SigCore5', dll = ctypes.CDLL(dll_path), serial_number = b'10001852')
@@ -47,17 +47,22 @@ SWT2 = MiniCircuits_Switch('SWT2',address = 'http://169.254.47.253')
 
 #%%update SWT Config
 
-swt_modes = {'1': ['0xxxxxxx','xxxxxxxx'],
-             '2': ['10xxxxxx','xxxxxxxx'],
-             '5': ['11xx0xxx','xxxxxxxx'],
-             '7': ['11xx10xx','xxxxxxxx'],
-             '8': ['11xx11xx','xxxxxxxx'],
-             'A': ['xxxxxxxx','000xx0x0'],
-             'B': ['xxxxxxxx','001xx0x0'],
-             'C': ['xxxxxxxx','0100x0x0'],
-             'D': ['xxxxxxxx','0101x0x0'],
-             'E': ['xxxxxxxx','0xxxx001'],
-             'F': ['xxxxxxxx','0xxxx011'],
+swt_modes = {'3': ['xxx11xx1','xxxxxxxx'],
+             '4': ['xxx1x110','xxxxxxxx'],
+             '5': ['xxx10xx1','xxxxxxxx'],
+             '6': ['xxx1x010','xxxxxxxx'],
+             '7': ['xxx1xx00','xxxxxxxx'],
+             '9': ['1x10xxxx','xxxxxxxx'],
+             '10': ['0x10xxxx','xxxxxxxx'],
+             '11': ['x100xxxx','xxxxxxxx'],
+             '12': ['x000xxxx','xxxxxxxx'],
+             'A': ['xxxxxxxx','xxxx1x00'],
+             'B': ['xxxxxxxx','x01xxxx1'],
+             'C': ['xxxxxxxx','x1x0xxx1'],
+             'D': ['xxxxxxxx','x00xxxx1'],
+             'E': ['xxxxxxxx','xxxx1x10'],
+             'F': ['xxxxxxxx','x1x1xxx1'],
+             'G': ['xxxxxxxx','xxxx0xx0'],
               } 
 
 SWT = SWTCTRL(SWT1,SWT2,swt_modes)
