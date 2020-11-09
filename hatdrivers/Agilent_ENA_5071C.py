@@ -284,7 +284,7 @@ class Agilent_ENA_5071C(VisaInstrument):
         self.trform('PLOG')
         self.trigger_source('BUS')
         
-        buffer_time = 0.5 #s
+        buffer_time = 1 #s
         if number == 1:
            
             self.averaging(0)
@@ -311,7 +311,7 @@ class Agilent_ENA_5071C(VisaInstrument):
             # print('timeout check')
             return self.gettrace()
     
-    def savetrace(self, avgnum = 500, savedir = None): 
+    def savetrace(self, avgnum = 200, savedir = None): 
         if savedir == None:
             import easygui 
             savedir = easygui.filesavebox("Choose file to save trace information: ")
@@ -336,12 +336,12 @@ class Agilent_ENA_5071C(VisaInstrument):
         file.close()
         
         
-    def save_important_info(self, savedir = None):
-        if savedir == None:
+    def save_important_info(self, savepath = None):
+        if savepath == None:
             import easygui 
-            savedir = easygui.filesavebox("Choose where to save VNA info: ", default = savedir)
-            assert savedir != None
-        file = open(savedir+'.txt', 'w')
+            savepath = easygui.filesavebox("Choose where to save VNA info: ", default = savepath)
+            assert savepath != None
+        file = open(savepath, 'w')
         file.write(self.name+'\n')
         file.write("Power: "+str(self.power())+'\n')
         file.write("Frequency: "+str(self.fcenter())+'\n')
@@ -350,7 +350,7 @@ class Agilent_ENA_5071C(VisaInstrument):
         file.write("Num_Pts: "+str(self.num_points())+'\n')
         print("Power: "+str(self.power())+'\n'+"Frequency: "+str(self.fcenter())+'\n'+"Span: "+str(self.fspan())+'\n'+"EDel: "+str(self.electrical_delay())+'\n'+"Num_Pts: "+str(self.num_points())+'\n')
         file.close()
-        return savedir
+        return savepath
     
     def trigger(self): 
         self.write(':TRIG:SING')

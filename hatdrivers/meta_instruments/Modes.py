@@ -13,9 +13,10 @@ import numpy as np
 import time
 from qcodes import (Instrument, VisaInstrument,
                     ManualParameter, MultiParameter,
-                    validators as vals)
+                    validators as vals, Station)
 import instrumentserver.serialize as ser
 import easygui 
+import os
 
 class mode(Instrument): 
     
@@ -53,10 +54,7 @@ class mode(Instrument):
                            unit = 's'
                            )
         self.add_parameter('mode_dict', 
-                           set_cmd = None, 
-                           # initial_value = par_dict["mode_dict"],
-                           vals = vals.Strings()
-                           )
+                           set_cmd = None)
         self.add_parameter('phase_offset', 
                            set_cmd = None, 
                            # initial_value = par_dict["phase_offset"], 
@@ -76,17 +74,22 @@ class mode(Instrument):
                            set_cmd = None,
                            unit = 'Hz')
         
-    def pull_from_VNA(self, VNA): #this needs to be the whole damn instrument
-        self.fcenter(VNA.fcenter())
-        self.span(VNA.fspan())
-        self.electrical_delay(VNA.electrical_delay())
-        self.power(VNA.power())
-        self.phase_offset(VNA.phase_offset())
-        self.ifbw(VNA.ifbw())
-        self.avgnum(VNA.avgnum())
-    
-    def pull(self, VNA = None, CS = None, Gen1 = None, Gen2 = None): #TODO: make general way of recording all instruments into here
-        return None
+    def pull(self, VNA = None, SWT = None, CS = None): #this needs to be the whole damn instrument
+        if VNA != None: 
+            print(f"pulling from: {VNA}")
+            self.fcenter(VNA.fcenter())
+            self.span(VNA.fspan())
+            self.electrical_delay(VNA.electrical_delay())
+            self.power(VNA.power())
+            self.phase_offset(VNA.phase_offset())
+            self.ifbw(VNA.ifbw())
+            self.avgnum(VNA.avgnum())
+        if SWT != None:
+            print("pulling from: "+str(SWT))
+            self.mode_dict(list(SWT.portvalue()))
+        if CS != None:
+            print(f"pulling from: {CS}")
+            self.bias_current(CS.current())
     
     def push_to_VNA(self, VNA, SWT = None):
         if self.fcenter() != None: 
@@ -97,8 +100,6 @@ class mode(Instrument):
             VNA.electrical_delay(self.electrical_delay())
         if self.power() != None: 
             VNA.power(self.power())
-        if self.mode_dict() != None and SWT != None: 
-            SWT.set_mode_dict(self.mode_dict())
         if self.phase_offset() != None:
             VNA.phase_offset(self.phase_offset())
         if self.ifbw() != None: 
@@ -106,6 +107,9 @@ class mode(Instrument):
         if self.avgnum() != None: 
             VNA.avgnum(self.avgnum())
             VNA.averaging(1)
+        if SWT != None and self.mode_dict()!= None: 
+            SWT.modes[self.name] = self.mode_dict()
+            SWT.set_mode_dict(self.name)
         
     def print(self):
         return ser.toParamDict([self])
@@ -118,7 +122,8 @@ class mode(Instrument):
     def load(self, filepath = None): 
         if filepath == None: 
             filepath = easygui.fileopenbox()
-        ser.loadParamsFromFile()
+        ser.loadParamsFromFile(filepath, [self])
+        
     def savetrace(self, VNA, cwd = None, avgnum = 1):
         self.push_to_VNA(VNA)
         self.pull_from_VNA(VNA)
@@ -126,4 +131,18 @@ class mode(Instrument):
             cwd = easygui.diropenbox()
         ser.saveParamsToFile([self], cwd+'\\'+self.name+'.txt')
         VNA.savetrace(avgnum = avgnum, savedir = cwd+'\\'+self.name+'_trace.h5')
+
+def load_from_folder(namespace, path = None):
+    if path == None: 
+            path = easygui.diropenbox()
+    assert path != None
+    for modefile in os.listdir(path):
+        name = modefile.split(".")[0]
+        mode_init = mode(name)
+        mode_init.load(filepath = path+"\\"+modefile)
+        namespace[name] = mode_init
         
+        print(modefile)
+        
+    
+    
