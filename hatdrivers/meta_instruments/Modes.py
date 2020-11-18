@@ -5,7 +5,7 @@ Created on Thu Jul 30 14:20:10 2020
 @author: Ryan Kaufman
 
 Description - 
-A metainstrument for a mode on a device. facilitates acquisition, sweeping, and fitting
+A metainstrument for a mode on a device. facilitates acquisition
 """
 import types
 import logging
@@ -73,8 +73,24 @@ class mode(Instrument):
                            vals = vals.Numbers(),
                            set_cmd = None,
                            unit = 'Hz')
+        self.add_parameter('gen_power', 
+                           set_cmd = None, 
+                           # initial_value = par_dict['power'], 
+                           vals = vals.Numbers(), 
+                           unit = 'dBm'
+                           )
+        self.add_parameter('gen_frequency', 
+                           set_cmd = None, 
+                           # initial_value = par_dict["frequency"],
+                           vals = vals.Numbers(0),
+                           unit = 'Hz'
+                           )
+        self.add_parameter('trace', 
+                           set_cmd = None)
         
-    def pull(self, VNA = None, SWT = None, CS = None): #this needs to be the whole damn instrument
+                           
+        
+    def pull(self, VNA = None, SWT = None, CS = None, Gen = None): #this needs to be the whole damn instrument
         if VNA != None: 
             print(f"pulling from: {VNA}")
             self.fcenter(VNA.fcenter())
@@ -90,26 +106,36 @@ class mode(Instrument):
         if CS != None:
             print(f"pulling from: {CS}")
             self.bias_current(CS.current())
+        if Gen != None: 
+            print(f"pulling from: {Gen}")
+            self.gen_frequency(Gen.frequency())
+            self.gen_power(Gen.power())
     
-    def push_to_VNA(self, VNA, SWT = None):
-        if self.fcenter() != None: 
-            VNA.fcenter(self.fcenter())
-        if self.span() != None:
-            VNA.fspan(self.span())
-        if self.electrical_delay() != None: 
-            VNA.electrical_delay(self.electrical_delay())
-        if self.power() != None: 
-            VNA.power(self.power())
-        if self.phase_offset() != None:
-            VNA.phase_offset(self.phase_offset())
-        if self.ifbw() != None: 
-            VNA.ifbw(self.ifbw())
-        if self.avgnum() != None: 
-            VNA.avgnum(self.avgnum())
-            VNA.averaging(1)
+    def push(self, VNA = None, SWT = None, Gen = None, CS = None):
+        if VNA != None: 
+            if self.fcenter() != None: 
+                VNA.fcenter(self.fcenter())
+            if self.span() != None:
+                VNA.fspan(self.span())
+            if self.electrical_delay() != None: 
+                VNA.electrical_delay(self.electrical_delay())
+            if self.power() != None: 
+                VNA.power(self.power())
+            if self.phase_offset() != None:
+                VNA.phase_offset(self.phase_offset())
+            if self.ifbw() != None: 
+                VNA.ifbw(self.ifbw())
+            if self.avgnum() != None: 
+                VNA.avgnum(self.avgnum())
+                VNA.averaging(1)
         if SWT != None and self.mode_dict()!= None: 
             SWT.modes[self.name] = self.mode_dict()
             SWT.set_mode_dict(self.name)
+        if Gen != None and self.gen_power() != None and self.gen_frequency() != None: 
+            Gen.power(self.gen_power())
+            Gen.frequency(self.gen_frequency())
+        if CS != None and self.bias_current() != None: 
+            CS.change_current(self.bias_current())
         
     def print(self):
         return ser.toParamDict([self])

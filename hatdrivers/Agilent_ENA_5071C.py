@@ -154,12 +154,8 @@ class Agilent_ENA_5071C(VisaInstrument):
                                              'SWR', 'REAL', 'IMAG', 
                                              'UPH', 'PPH')
                             )
-                            # '''
-                            # Set trace format. MLOGarithmic|PHASe|GDELay| SLINear|
-                            # SLOGarithmic|SCOMplex|SMITh|SADMittance|PLINear|PLOGarithmic|
-                            # POLar|MLINear|SWR|REAL| IMAGinary|UPHase|PPHase
-                            # '''
-                            
+                        
+
         self.add_parameter('math', 
                            get_cmd = ':CALC1:MATH:FUNC?', 
                            set_cmd = ':CALC1:MATH:FUNC {}', 
@@ -311,7 +307,9 @@ class Agilent_ENA_5071C(VisaInstrument):
             # print('timeout check')
             return self.gettrace()
     
-    def savetrace(self, avgnum = 200, savedir = None): 
+    #DO NOT CHANGE THE DEFAULT KEYWORD ARGUMENTS HERE, CHANGE THEM WHEN YOU CALL THE FUNCTION WITH THE KEYWORD ARGUMENT
+    #ex: VNA.savetrace(avgnum = 200)
+    def savetrace(self, avgnum = 3, savedir = None): 
         if savedir == None:
             import easygui 
             savedir = easygui.filesavebox("Choose file to save trace information: ")
@@ -336,18 +334,19 @@ class Agilent_ENA_5071C(VisaInstrument):
         file.close()
         
         
-    def save_important_info(self, savepath = None):
-        if savepath == None:
+    def save_important_info(self, savepath = None, print_info = False):
+        if savepath == None and print_info == False:
             import easygui 
             savepath = easygui.filesavebox("Choose where to save VNA info: ", default = savepath)
             assert savepath != None
-        file = open(savepath, 'w')
-        file.write(self.name+'\n')
-        file.write("Power: "+str(self.power())+'\n')
-        file.write("Frequency: "+str(self.fcenter())+'\n')
-        file.write("Span: "+str(self.fspan())+'\n')
-        file.write("EDel: "+str(self.electrical_delay())+'\n')
-        file.write("Num_Pts: "+str(self.num_points())+'\n')
+        if print_info == False: 
+            file = open(savepath, 'w')
+            file.write(self.name+'\n')
+            file.write("Power: "+str(self.power())+'\n')
+            file.write("Frequency: "+str(self.fcenter())+'\n')
+            file.write("Span: "+str(self.fspan())+'\n')
+            file.write("EDel: "+str(self.electrical_delay())+'\n')
+            file.write("Num_Pts: "+str(self.num_points())+'\n')
         print("Power: "+str(self.power())+'\n'+"Frequency: "+str(self.fcenter())+'\n'+"Span: "+str(self.fspan())+'\n'+"EDel: "+str(self.electrical_delay())+'\n'+"Num_Pts: "+str(self.num_points())+'\n')
         file.close()
         return savepath

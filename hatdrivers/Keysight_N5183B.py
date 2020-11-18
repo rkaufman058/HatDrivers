@@ -221,28 +221,7 @@ class Keysight_N5183B(VisaInstrument):
         print("Power: "+str(self.power())+'\n'+"Frequency: "+str(self.frequency()))
         file.close()
         return filepath
-        
-            
-        
-    def get_all(self):
+    
+    def print_info(self): 
+        print("Power: "+str(self.power())+'\n'+"Frequency: "+str(self.frequency()))
 
-        self.output_status()
-        self.frequency()
-        self.reference_source()
-        self.alc_auto()
-        self.phase_adjust()
-        self.power()
-        self.power_mode()
-        self.power_start()
-        self.power_stop()
-        self.mod_status()
-        self.frequency_mode()
-        self.sweep_type()
-        self.frequency_start()
-        self.frequency_stop()
-        self.dwell_time()
-        self.sweep_spacing()
-        self.sweep_points()
-        self.sweep_direction()
-        self.sweep_type()
-        self.sweep_step()
