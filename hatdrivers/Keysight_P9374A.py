@@ -1,51 +1,31 @@
-<<<<<<< HEAD
-
-# MJH 2015_10_15.. Maybe this will work??
-#Additions by Alex
-#average method by Erick Brindock  7/15/16
-#driver rewritten by Ryan Kaufman 06/11/20 for Qcodes
-#YR: also, here is keysights manual,http://ena.support.keysight.com/e5071c/manuals/webhelp/eng/
-#you want the programming -> remote control part for VISA commands
-
-=======
 # -*- coding: utf-8 -*-
 """
-A driver to control the Keysight VNA P9374A using VISA
+A driver to control the Keysight VNA P9374A using pyVISA and qcodes
 
-@author: Hatlab: Pinlei Lu
-@email: PIL9@pitt.edu
+@author: Hatlab: Ryan Kaufman
 
-PS: This driver is not very mature, feel free contacting author.
+PS: This driver is not very mature
 """
 
-from instrument import Instrument
->>>>>>> a7e8429a186eeaeec2d1790a73c8fe4879d23db2
-import visa
+# import visa
 import types
 import logging
 import numpy as np
 import time
-<<<<<<< HEAD
 from qcodes import (Instrument, VisaInstrument,
                     ManualParameter, MultiParameter,
                     validators as vals)
-#from pyvisa.visa_exceptions import VisaIOError
-#triggered=[False]*159 
 
 class Keysight_P9374A(VisaInstrument):
     '''
-    This is the driver for the Agilent E5071C Vector Netowrk Analyzer
+    This is the driver for the Keysight_P9374A Vector Netowrk Analyzer
 
-    Usage:
-    Initialize with
-    <name> = instruments.create('<name>', 'Agilent_E5071C', 
-    address='<GBIP address>, reset=<bool>')
     '''
     
     def __init__(self, name, address = None, **kwargs):
 
         '''
-        Initializes the Agilent_E5071C, and communicates with the wrapper.
+        Initializes the Keysight_P9374A, and communicates with the wrapper.
 
         Input:
           name (string)    : name of the instrument
@@ -54,7 +34,8 @@ class Keysight_P9374A(VisaInstrument):
         '''
         if address == None: 
             raise Exception('TCP IP address needed')
-        logging.info(__name__ + ' : Initializing instrument Agilent_E5071C')
+        logging.info(__name__ + ' : Initializing instrument Keysight PNA')
+        
         super().__init__(name, address, terminator = '\n', **kwargs)
 
         # Add in parameters
@@ -169,9 +150,10 @@ class Keysight_P9374A(VisaInstrument):
                                              'SCOM', 'SMIT', 'SADM', 
                                              'POL', 'MLIN', 
                                              'SWR', 'REAL', 'IMAG', 
-                                             'UPH', 'PPH')
+                                             'UPH', 'PPH',  'SLIN', 'SLOG',)
+                            )
                             
-        self.add_parameter('math', 'SLIN', 'SLOG',
+        self.add_parameter('math',
                            get_cmd = ':CALC1:MATH:FUNC?', 
                            set_cmd = ':CALC1:MATH:FUNC {}', 
                            vals = vals.Enum('ADD', 'SUBT', 'DIV', 'MULT', 'NORM')
@@ -196,6 +178,7 @@ class Keysight_P9374A(VisaInstrument):
                            get_parser = float,
                            unit = 's'
                            )
+        self.write('CALC1:PAR:MNUM 1') #sets the active msmt to the first channel/trace
         self.connect_message()
         
 
@@ -210,21 +193,9 @@ class Keysight_P9374A(VisaInstrument):
             freqvalues array (Hz)
         '''
         logging.info(__name__ + ' : get f stim data')
-        strdata= str(self._visainstrument.ask(':SENS1:X:VAL?'))
-        return np.array(map(float,strdata.split(',')))
+        strdata= str(self.ask(':SENS1:X:VAL?'))
+        return np.array(list(map(float,strdata.split(','))))
 
-    def get_fdata(self):
-        '''
-        Gets freq stimulus data, returns array
-        
-        Input:
-            None
-        Output:
-            freqvalues array (Hz)
-        '''
-        logging.info(__name__ + ' : get f stim data')
-        strdata= str(self._visainstrument.ask(':SENS1:X:VAL?'))
-        return np.array(map(float,strdata.split(',')))
     
     def gettrace(self):
         '''
@@ -236,16 +207,15 @@ class Keysight_P9374A(VisaInstrument):
             mags (dB) phases (rad)
         '''
         logging.info(__name__ + ' : get amp, phase stim data')
-        strdata= str(self.ask('CALC1:DATA? FDATA'))
+        prev_trform = self.trform()
+        self.trform('POL')
+        strdata= str(self.ask(':CALC1:DATA? FDATA'))
+        self.trform(prev_trform)
         data= np.array(strdata.split(',')).astype(float)
-        print(len(data))
+        
         if len(data)%2 == 0:
-            data=data.reshape((int(len(data)/2),2))
-        strdata= str(self._visainstrument.ask('CALC1:DATA? FDATA'))
-        data= np.array(map(float,strdata.split(',')))
-        if len(data)%2 == 0:
-            print 'change shape'
-            data=data.reshape((len(data)/2,2))
+            print('reshaping data')
+            data=data.reshape(int(len(data)/2),2)
             real=data[:, 0]
             imag=data[:, 1]
             mag=20*np.log10(np.sqrt(real**2+imag**2))
@@ -264,92 +234,5 @@ class Keysight_P9374A(VisaInstrument):
         '''
         logging.debug(__name__+": data to mem called")
         self.write(":CALC1:MATH:MEM")
-    def average(self, number): 
-        #setting averaging timeout, it takes 52.02s for 100 traces to average with 1601 points and 2kHz IFBW, so 
-        '''
-        Sets the number of averages taken, waits until the averaging is done, then gets the trace
-        '''
-        assert number > 0
-        
-        prev_trform = self.trform()
-        self.trform('PLOG')
-        self.trigger_source('BUS')
-        
-        buffer_time = 1 #s
-        if number == 1:
-           
-            self.averaging(0)
-            self.average_trigger(0)
-            s_per_trace = self.sweep_time()
-            self.timeout(number*s_per_trace+buffer_time)
-            self.trigger()
-            return self.gettrace()
-        else: 
-            #wait just a little longer for safety #TODO: find a way to make this better than 8%
-            #turn on the average trigger
-            
-            self.averaging(1)
-            self.average_trigger(1)
-            self.avgnum(number)
-            prev_timeout = self.timeout()
-            s_per_trace = self.sweep_time()
-            self.timeout(number*s_per_trace+buffer_time)
-            print("Waiting {:.3f} seconds for {} averages...".format(self.timeout(), number))
-            self.write(':TRIG:SING')
-            # print('triggered')
-            #the next command will hang the kernel until the averaging is done
-            print(self.ask('*OPC?'))
-            # print('timeout check')
-            return self.gettrace()
-    
-    def savetrace(self, avgnum = 200, savedir = None): 
-        if savedir == None:
-            import easygui 
-            savedir = easygui.filesavebox("Choose file to save trace information: ")
-            assert savedir != None
-            
-        elif savedir == "previous": 
-            savedir = self.previous_save
-            assert savedir != None
-        fdata = self.getfdata()
-        prev_trform = self.trform()
-        self.trform('PLOG')
-        tracedata = self.average(avgnum)
-        self.trform(prev_trform)
-        self.trigger_source('INT')
-        self.previous_save = savedir
-        import h5py
-        file = h5py.File(savedir, 'w')
-        file.create_dataset("VNA Frequency (Hz)", data = fdata)
-        file.create_dataset("S21", data = tracedata)
-        file.create_dataset("Phase (deg)", data = tracedata[1])
-        file.create_dataset("Power (dB)", data = tracedata[0])
-        file.close()
-        
-    def save_important_info(self, savedir = None):
-        if savedir == None:
-            import easygui 
-            savedir = easygui.filesavebox("Choose where to save VNA info: ", default = savedir)
-            assert savedir != None
-        file = open(savedir+'.txt', 'w')
-        file.write(self.name+'\n')
-        file.write("Power: "+str(self.power())+'\n')
-        file.write("Frequency: "+str(self.fcenter())+'\n')
-        file.write("Span: "+str(self.fspan())+'\n')
-        file.write("EDel: "+str(self.electrical_delay())+'\n')
-        file.write("Num_Pts: "+str(self.num_points())+'\n')
-        print("Power: "+str(self.power())+'\n'+"Frequency: "+str(self.fcenter())+'\n'+"Span: "+str(self.fspan())+'\n'+"EDel: "+str(self.electrical_delay())+'\n'+"Num_Pts: "+str(self.num_points())+'\n')
-        file.close()
-        return savedir
-    
-    def trigger(self): 
-        self.write(':TRIG:SING')
-        return None
-    def set_to_manual(self): 
-        self.rfout(1)
-        self.averaging(1)
-        self.avgnum(1)
-        self.average_trigger(0)
-        self.trform('PHAS')
-        self.trigger_source('INT')
+
 
