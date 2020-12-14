@@ -31,6 +31,7 @@ class Hat_P9374A(Keysight_P9374A):
         prev_trform = self.trform()
         self.trform('POL')
         total_time = self.sweep_time()*number+0.5
+        self.avgnum(number)
         self.average_restart()
         print(f"Waiting {total_time}s for {number} averages...")
         time.sleep(total_time)
@@ -94,5 +95,5 @@ class Hat_P9374A(Keysight_P9374A):
         time.sleep(wait_time)
         self.data_to_mem()
         self.math('DIV')
-        self.set_to_manual(trform = 'MLOG')
+        self.set_to_manual()
     
