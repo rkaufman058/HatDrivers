@@ -4,7 +4,6 @@ A driver to control the Keysight VNA P9374A using pyVISA and qcodes
 
 @author: Hatlab: Ryan Kaufman
 
-PS: This driver is not very mature
 """
 
 # import visa
@@ -19,6 +18,9 @@ from qcodes import (Instrument, VisaInstrument,
 class Keysight_P9374A(VisaInstrument):
     '''
     This is the driver for the Keysight_P9374A Vector Netowrk Analyzer
+    Performs basic manipulations of parameters and data acquisition
+    
+    Note: this version does not include a way of averaging via a BUS trigger
 
     '''
     
@@ -183,16 +185,20 @@ class Keysight_P9374A(VisaInstrument):
         
 
     
-    def getfdata(self):
+    def getSweepData(self):
         '''
-        Gets freq stimulus data, returns array
+        Gets stimulus data in displayed range of active measurement, returns array
+        Will return different data depending on sweep type. 
         
+        For example: 
+            power sweep: 1xN array of powers in dBm
+            frequency sweep: 1xN array of freqs in Hz
         Input:
             None
         Output:
-            freqvalues array (Hz)
+            sweep_values (Hz, dBm, etc...)
         '''
-        logging.info(__name__ + ' : get f stim data')
+        logging.info(__name__ + ' : get stim data')
         strdata= str(self.ask(':SENS1:X:VAL?'))
         return np.array(list(map(float,strdata.split(','))))
 

@@ -178,9 +178,9 @@ class Agilent_ENA_5071C(VisaInstrument):
         self.add_parameter('trace', 
                            set_cmd = None, 
                            get_cmd = self.gettrace)
-        self.add_parameter('fdata', 
+        self.add_parameter('SweepData', 
                            set_cmd = None, 
-                           get_cmd = self.getfdata)
+                           get_cmd = self.getSweepData)
         self.add_parameter('pdata', 
                            set_cmd = None, 
                            get_cmd = self.getpdata)
@@ -204,6 +204,23 @@ class Agilent_ENA_5071C(VisaInstrument):
         data= np.array(list(map(float,strdata.split(','))))
         data=data.reshape((int(np.size(data)/2)),2)
         return data.transpose()
+    
+    def getSweepData(self):
+        '''
+        Gets stimulus data in displayed range of active measurement, returns array
+        Will return different data depending on sweep type. 
+        
+        For example: 
+            power sweep: 1xN array of powers in dBm
+            frequency sweep: 1xN array of freqs in Hz
+        Input:
+            None
+        Output:
+            sweep_values (Hz, dBm, etc...)
+        '''
+        logging.info(__name__ + ' : get stim data')
+        strdata= str(self.ask(':SENS1:X:VAL?'))
+        return np.array(list(map(float,strdata.split(','))))
 
             
         
