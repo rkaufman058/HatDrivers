@@ -43,3 +43,8 @@ class YOKO(GS200):
             step = 1e-7
             delay = step/rate #I suspect this is too fast for the TCP protocol to keep up
             self.ramp_current(new_curr, step, delay)
+            
+    def bump(self, bump): 
+        old = self.current()
+        new = old + bump
+        self.change_current(new)

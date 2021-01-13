@@ -30,8 +30,6 @@ from hatdrivers.Hat_ENA5071C  import Hat_ENA5071C
 #Metainstruments and tools ... 
 from hatdrivers.meta_instruments import Modes
 
-
-
 #%%
 # MXA = Keysight_MXA_N9020A("MXA", address = 'TCPIP0::169.254.180.116::INSTR')
 # VNA = Agilent_ENA_5071C("VNA", address = "TCPIP0::169.254.169.64::inst0::INSTR", timeout = 30)
@@ -39,13 +37,14 @@ pVNA = Hat_P9374A("pVNA", address = "TCPIP0::Hatlab_3-PC::hislip0,4880::INSTR", 
 #for little VNA: TCPIP0::Hatlab_3-PC::hislip0,4880::INSTR
 #For big VNA: (RIP): TCPIP0::169.254.152.68::inst0::INSTR
 #For big VNA2: TCPIP0::169.254.169.64::inst0::INSTR
+#%%
 SigGen = Keysight_N5183B("SigGen", address = "TCPIP0::169.254.29.44::inst0::INSTR")
 # QGen = Keysight_N5183B("QGen", address = "TCPIP0::169.254.161.164::inst0::INSTR")
 #%%
-try: 
-    yoko2 = YOKO('yoko2', address = "TCPIP::169.254.47.131::INSTR")
-except: 
-    print("YOKO not connected")
+# try: 
+yoko2 = YOKO('yoko2', address = "TCPIP::169.254.47.131::INSTR")
+# except: 
+#     print("YOKO not connected")
 #%%
 # # Switches need to be initialized externally, then fed into the switch_control file explicitly now
 SWT1 = MiniCircuits_Switch('SWT1',address = 'http://169.254.47.255')
@@ -59,14 +58,17 @@ swt_modes = {
     "6":["xxx01x1x", "xxxxxxxx"],
     "A":["xxxxxxxx", "xxx10100"], 
     "B":["xxxxxxxx", "x100xx00"], 
-    "G":["xxxxxxxx", "xxx11x00"]
+    "G":["xxxxxxxx", "xxx11x00"],
+    
+    'H0': ["xxxxxxx0", "xxxxxxxx"],
+    'H1': ["xxxxxxx1", "xxxxxxxx"]
     }
 
 SWT = SWTCTRL(SWT1,SWT2,swt_modes)
 
 #%% Load previous modes
-Modes.load_from_folder(globals(),path = "H:\Data\Fridge Texas\Cooldown_20201203\SHARCs\SHARC41\mode_info")
-new_current_center = -7.05e-5 #A
+Modes.load_from_folder(globals(),path = "H:\Data\Fridge Texas\Cooldown_20210104\SHARC41\modes_info")
+new_current_center = -7.053e-5 #A
 #%%SignalCores 
 # dll_path = r'C:\Users\Hatlab_3\Desktop\RK_Scripts\New_Drivers\HatDrivers\DLL\sc5511a.dll'
 # SigCore5 = SignalCore_sc5511a('SigCore5', dll = ctypes.CDLL(dll_path), serial_number = b'10001852')

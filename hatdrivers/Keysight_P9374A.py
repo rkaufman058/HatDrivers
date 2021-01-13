@@ -180,7 +180,7 @@ class Keysight_P9374A(VisaInstrument):
                            get_parser = float,
                            unit = 's'
                            )
-        self.write('CALC1:PAR:MNUM 1') #sets the active msmt to the first channel/trace
+        # self.write('CALC1:PAR:MNUM 1') #sets the active msmt to the first channel/trace
         self.connect_message()
         
 

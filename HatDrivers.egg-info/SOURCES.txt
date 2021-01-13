@@ -6,8 +6,11 @@ HatDrivers.egg-info/dependency_links.txt
 HatDrivers.egg-info/not-zip-safe
 HatDrivers.egg-info/top_level.txt
 hatdrivers/Agilent_ENA_5071C.py
+hatdrivers/Hat_ENA5071C.py
+hatdrivers/Hat_P9374A.py
 hatdrivers/Keysight_MXA_N9020A.py
 hatdrivers/Keysight_N5183B.py
+hatdrivers/Keysight_P9374A.py
 hatdrivers/MiniCircuits_Switch.py
 hatdrivers/SignalCore_sc5511a.py
 hatdrivers/Yokogawa_GS200.py

@@ -83,14 +83,14 @@ class Hat_P9374A(Keysight_P9374A):
         self.rfout(1)
         self.averaging(1)
         self.avgnum(3)
-        self.trform('PHAS')
+        self.trform('MLOG')
         self.trigger_source('INT')
         
     def renormalize(self, num_avgs): 
         self.averaging(1)
         self.avgnum(num_avgs)
         s_per_trace = self.sweep_time()
-        wait_time = s_per_trace*num_avgs + 2
+        wait_time = s_per_trace*num_avgs*1.3 + 2
         print(f'Renormalizing, waiting {wait_time} seconds for averaging...')
         time.sleep(wait_time)
         self.data_to_mem()
