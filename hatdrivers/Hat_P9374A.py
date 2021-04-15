@@ -17,9 +17,13 @@ class Hat_P9374A(Keysight_P9374A):
         if address == None:
             raise Exception('TCPIP Address needed')
         super().__init__(name, address, **kwargs)
+        self.averaging(1)
+        self.ifbw(3000)
+        self.avgnum(15)
+        self.power(-20)
     
     def average_restart(self):
-        self.write('SENS1:AVER:CLE')  
+        self.write('SENS1:AVER:CLE')
         
     def average(self, number): 
         #setting averaging timeout, it takes 52.02s for 100 traces to average with 1601 points and 2kHz IFBW, so 
@@ -45,17 +49,16 @@ class Hat_P9374A(Keysight_P9374A):
         elif savedir == "previous": 
             savedir = self.previous_save
             assert savedir != None
-        fdata = self.getfdata()
+        fdata = self.getSweepData()
         prev_trform = self.trform()
-        self.trform('PLOG')
+        self.trform('POL')
         tracedata = self.average(avgnum)
         self.trform(prev_trform)
-        self.trigger_source('INT')
         self.previous_save = savedir
         import h5py
         file = h5py.File(savedir, 'w')
         file.create_dataset("VNA Frequency (Hz)", data = fdata)
-        file.create_dataset("S21", data = tracedata)
+        file.create_dataset("S11", data = tracedata)
         file.create_dataset("Phase (deg)", data = tracedata[1])
         file.create_dataset("Power (dB)", data = tracedata[0])
         file.close()
@@ -89,11 +92,13 @@ class Hat_P9374A(Keysight_P9374A):
     def renormalize(self, num_avgs): 
         self.averaging(1)
         self.avgnum(num_avgs)
+        self.prev_elec_delay = self.electrical_delay()
         s_per_trace = self.sweep_time()
         wait_time = s_per_trace*num_avgs*1.3 + 2
         print(f'Renormalizing, waiting {wait_time} seconds for averaging...')
         time.sleep(wait_time)
         self.data_to_mem()
         self.math('DIV')
+        self.electrical_delay(0)
         self.set_to_manual()
     

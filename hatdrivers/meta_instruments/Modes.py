@@ -87,6 +87,10 @@ class mode(Instrument):
                            )
         self.add_parameter('trace', 
                            set_cmd = None)
+        self.add_parameter('gen_att', 
+                           set_cmd = None)
+        self.add_parameter('vna_att', 
+                           set_cmd = None)
         
                            
         
@@ -110,6 +114,7 @@ class mode(Instrument):
             print(f"pulling from: {Gen}")
             self.gen_frequency(Gen.frequency())
             self.gen_power(Gen.power())
+        print('----------------\n REMEMBER TO SET ATTENUATION\n-----------------')
     
     def push(self, VNA = None, SWT = None, Gen = None, CS = None):
         if VNA != None: 
@@ -136,7 +141,11 @@ class mode(Instrument):
             Gen.frequency(self.gen_frequency())
         if CS != None and self.bias_current() != None: 
             CS.change_current(self.bias_current())
-        
+        if self.gen_att() != None:
+            print(f"SET GENERATOR ATTENUATION TO {self.gen_att()}")
+        if self.vna_att() != None:
+            print(f"SET VNA ATTENUATION TO {self.vna_att()}")
+            
     def print(self):
         return ser.toParamDict([self])
     

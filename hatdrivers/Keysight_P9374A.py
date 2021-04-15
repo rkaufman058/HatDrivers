@@ -107,7 +107,7 @@ class Keysight_P9374A(VisaInstrument):
                            set_cmd = ':SOUR1:POW:STOP {}', 
                            unit = 'dBm', 
                            get_parser = float, 
-                           vals = vals.Numbers(-85, 10)), 
+                           vals = vals.Numbers(-85, 20)), 
         self.add_parameter('averaging', 
                            get_cmd = ':SENS1:AVER?',
                            set_cmd = ':SENS1:AVER {}', 
@@ -180,7 +180,7 @@ class Keysight_P9374A(VisaInstrument):
                            get_parser = float,
                            unit = 's'
                            )
-        # self.write('CALC1:PAR:MNUM 1') #sets the active msmt to the first channel/trace
+        self.write('CALC1:PAR:MNUM 1') #sets the active msmt to the first channel/trace
         self.connect_message()
         
 
