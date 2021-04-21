@@ -22,7 +22,7 @@ from hatdrivers.SignalCore_sc5511a import SignalCore_SC5511A
 from hatdrivers.MiniCircuits_Switch import MiniCircuits_Switch
 from hatdrivers.switch_control import SWT as SWTCTRL
 from hatdrivers.Keysight_MXA_N9020A import Keysight_MXA_N9020A
-from hatdrivers.Tektronix_AWG5014C import Tektronix_AWG5014C
+# from hatdrivers.Tektronix_AWG5014C import Tektronix_AWG5014C
 from hatdrivers import DLL
 # from hatdrivers.YROKO import YROKO_Client
 
@@ -32,8 +32,9 @@ from hatdrivers.Hat_ENA5071C  import Hat_ENA5071C
 #Metainstruments and tools ... 
 from hatdrivers.meta_instruments import Modes
 #%%AWG
-AWG1 = Tektronix_AWG5014C('AWG1', r'TCPIP0::169.254.116.102::INSTR')
-
+from qcodes.instrument_drivers.tektronix.AWG5014 import Tektronix_AWG5014
+from hatdrivers.Tektronix_AWG5014C_old import Tektronix_AWG5014C as Tk_old
+AWG = Tk_old('AWG', 'TCPIP0::169.254.116.102::inst0::INSTR')
 #%%
 # MXA = Keysight_MXA_N9020A("MXA", address = 'TCPIP0::169.254.180.116::INSTR')
 # VNA = Agilent_ENA_5071C("VNA", address = "TCPIP0::169.254.169.64::inst0::INSTR", timeout = 30)
@@ -63,7 +64,6 @@ swt_modes = {
     "A":["xxxxxxxx", "xxx10100"], 
     "B":["xxxxxxxx", "x100xx00"], 
     "G":["xxxxxxxx", "xxx11x00"],
-    
     'H0': ["xxxxxxx0", "xxxxxxxx"],
     'H1': ["xxxxxxx1", "xxxxxxxx"]
     }
@@ -74,8 +74,9 @@ SWT = SWTCTRL(SWT1,SWT2,swt_modes)
 Modes.load_from_folder(globals(),path = "E:\Data\Cooldown_20210408\SNAIL_Amps\C1\Modes_info")
 #%%SignalCores z
 dll_path = r'C:\Users\Hatlab_3\Desktop\RK_Scripts\New_Drivers\HatDrivers\DLL\sc5511a.dll'
-SigCore5 = SignalCore_SC5511A('SigCore5', serial_number = '10001852', debug = False)
-# YROKO1 = instruments.create('YROKO1','YROKO_Client')
+SC5 = SignalCore_SC5511A('SigCore5', serial_number = '10001851', debug = True)
+SC9 = SignalCore_SC5511A('SigCore9', serial_number = '1000190E', debug = True)
+# YROKO1 = instruments.create('YROKO1','YROKO_Client')SC
 
 
 

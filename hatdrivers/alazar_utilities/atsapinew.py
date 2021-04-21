@@ -916,6 +916,7 @@ class Board:
     ats.AlazarSetExternalTrigger.errcheck = returnCodeCheck
     def setExternalTrigger(self, coupling, range):
         '''Configure the external trigger.'''
+        print(ats.AlazarSetExternalTrigger(self.handle, coupling, range))
         ats.AlazarSetExternalTrigger(self.handle, coupling, range)
 
     ats.AlazarSetLED.restype = U32

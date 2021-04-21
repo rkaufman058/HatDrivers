@@ -56,7 +56,7 @@ def ConfigureBoard(board):
     board.inputControl(ats.CHANNEL_B,
                        ats.AC_COUPLING,
                        #ats.INPUT_RANGE_PM_400_MV,
-                       ats.INPUT_RANGE_PM_400_MV,                       
+                       ats.INPUT_RANGE_PM_100_MV,                       
                        ats.IMPEDANCE_50_OHM)
     
     # TODO: Select channel B bandwidth limit as required.
@@ -99,7 +99,8 @@ def ConfigureBoard(board):
     board.setTriggerTimeOut(triggerTimeout_clocks)
 
     # Configure AUX I/O connector as required
-    board.configureAuxIO(ats.AUX_OUT_TRIGGER,0)    
+    board.configureAuxIO(ats.AUX_OUT_TRIGGER,
+                         0)    
                          
 
 
@@ -118,9 +119,10 @@ class demodulation():
         
         elif not record_average:
             self.result = np.sum((self.temp * triarray).reshape((recordsPerBuffer, cycles_per_record, stride)), axis = 2)
+    
 
 
-def single_buffer(data, recordsPerBuffer, cycles_per_record, stride, SinArray, CosArray, num_sequences, record_average, demodulate = True):
+def single_buffer(data, recordsPerBuffer, cycles_per_record, stride, SinArray, CosArray, num_sequences, record_average):
     '''
     Calculating the I and Q value from the raw data that comes from one buffer.
     Using four thread to calculate Signal and Reference's I and Q. 
@@ -134,7 +136,7 @@ def single_buffer(data, recordsPerBuffer, cycles_per_record, stride, SinArray, C
     refI = demodulation(temp[1])
     refQ = demodulation(temp[1])
     
-    t1 = Thread(target = sigQ.demo, args = (SinArray, recordsPerBuffer, cycles_per_record, stride, num_sequences, record_average))
+    t1 = Thread(target = sigQ.demo, args = (SinArray, recordsPerBuffer, cycles_per_record, stride, num_sequences, record_average))    
     t2 = Thread(target = sigI.demo, args = (CosArray, recordsPerBuffer, cycles_per_record, stride, num_sequences, record_average))
     
     t3 = Thread(target = refQ.demo, args = (SinArray, recordsPerBuffer, cycles_per_record, stride, num_sequences, record_average))
@@ -149,21 +151,11 @@ def single_buffer(data, recordsPerBuffer, cycles_per_record, stride, SinArray, C
     t2.join()
     t3.join()
     t4.join()
-    
-    if demodulate: 
-        print('Demodulating...')
-        Ref_mag = np.sqrt(refI.result**2 + refQ.result**2)
-        #phase subtraction to remove generator drift
-        Sig_I = (sigI.result*refI.result + sigQ.result*refQ.result)/Ref_mag
-        Sig_Q = (-sigI.result*refQ.result + sigQ.result*refI.result)/Ref_mag
-    else: 
-        print('NOT Demodulating')
-        Sig_I = sigI.result
-        Sig_Q = sigQ.result
-        
-    Ref_I = refI.result
-    Ref_Q = refQ.result
-    
+  
+    Ref_mag = np.sqrt(refI.result**2 + refQ.result**2)
+    Sig_I = (sigI.result*refI.result + sigQ.result*refQ.result)/Ref_mag
+    Sig_Q = (-sigI.result*refQ.result + sigQ.result*refI.result)/Ref_mag    
+
     del t1
     del t2
     del t3
@@ -173,7 +165,7 @@ def single_buffer(data, recordsPerBuffer, cycles_per_record, stride, SinArray, C
     del refI
     del refQ
 
-    return(Sig_I, Sig_Q, Ref_I, Ref_Q)
+    return(Sig_I, Sig_Q)
     
 
 def use_weight_function(filename, SinArray, CosArray, t_avg):
@@ -212,7 +204,7 @@ def use_weight_function(filename, SinArray, CosArray, t_avg):
     
 
 
-def alazar_premesurement_setting(t_avg, points_per_record, num_records, num_sequences, weight_function, demodulation = True):
+def alazar_premesurement_setting(t_avg, points_per_record, num_records, num_sequences, weight_function):
       
     correction_points = points_per_record % 32
     if correction_points != 0: # check if not a multiple of 32
@@ -240,14 +232,11 @@ def alazar_premesurement_setting(t_avg, points_per_record, num_records, num_sequ
         record_per_buffer = int(record_per_buffer / num_sequences) * num_sequences
         new_num_records = record_per_buffer * num_ram_buffers
 
-    if demodulation: 
-        SinArray = np.arange(points_per_record)
-        CosArray = np.arange(points_per_record)        
-        SinArray = np.sin(2 * np.pi * SinArray / points_per_cycle) * np.sqrt(2 / t_avg)
-        CosArray = np.cos(2 * np.pi * CosArray / points_per_cycle) * np.sqrt(2 / t_avg)
-    else: 
-        SinArray = np.ones(points_per_record)
-        CosArray = np.ones(points_per_record)
+     
+    SinArray = np.arange(points_per_record)
+    CosArray = np.arange(points_per_record)        
+    SinArray = np.sin(2 * np.pi * SinArray / points_per_cycle) * np.sqrt(2 / t_avg)
+    CosArray = np.cos(2 * np.pi * CosArray / points_per_cycle) * np.sqrt(2 / t_avg)
     
     if weight_function['use_weight_function']:
 #        print 'weighted'
@@ -260,7 +249,7 @@ def alazar_premesurement_setting(t_avg, points_per_record, num_records, num_sequ
              CosArray[start : start + demode_window_length]) = use_weight_function(filename, 
                                                                 SinArray[start : start + demode_window_length], 
                                                                 CosArray[start : start + demode_window_length],
-                                                                t_avg)
+                                                                t_avg)    
     
     
     
@@ -271,7 +260,7 @@ def alazar_premesurement_setting(t_avg, points_per_record, num_records, num_sequ
     return (MAX_NUM_BUFFERS, cycles_per_record, num_ram_buffers, SinArray, CosArray, new_num_records)
                     
                       
-def AcquireData(board, measurement_parameters, weight_function, use_AWG=True, AWG=None, AWG2=None, demodulation = True):
+def AcquireData(board, measurement_parameters, weight_function, use_AWG=True, AWG=None, AWG2=None):
     if use_AWG:
 #        import time
 #        import qt
@@ -294,16 +283,15 @@ def AcquireData(board, measurement_parameters, weight_function, use_AWG=True, AW
                                                                                                                               points_per_record, 
                                                                                                                               num_records, 
                                                                                                                               num_sequences,
-                                                                                                                              weight_function, 
-                                                                                                                              demodulation = demodulation)   
+                                                                                                                              weight_function)    
+    
     
     if not record_average:
-        print(f"Num_records: {num_records}\nCycles_per_record: {cycles_per_record}")
+        print(num_records, cycles_per_record)
         I_out = np.zeros((num_records, cycles_per_record))
         Q_out = np.zeros((num_records, cycles_per_record))
-        ref_I = np.zeros((num_records, cycles_per_record))
-        ref_Q = np.zeros((num_records, cycles_per_record))
 
+    
     # No pre-trigger samples in NPT mode
     preTriggerSamples = 0
 
@@ -318,10 +306,10 @@ def AcquireData(board, measurement_parameters, weight_function, use_AWG=True, AW
     
     # TODO: Select the active channels.
     channels = ats.CHANNEL_A | ats.CHANNEL_B
-    print(f"CHANNELS: {channels}")
     channelCount = 0
     for c in ats.channels:
         channelCount += (c & channels == c)
+        
         
     # Compute the number of bytes per record and per buffer
     memorySize_samples, bitsPerSample = board.getChannelInfo()
@@ -384,35 +372,46 @@ def AcquireData(board, measurement_parameters, weight_function, use_AWG=True, AW
             print(buffersCompleted % len(buffers))
             buffer = buffers[buffersCompleted % len(buffers)]
             print(buffer.addr)
-            board.waitAsyncBufferComplete(buffer.addr, timeout_ms = 3000)
+            board.waitAsyncBufferComplete(buffer.addr, timeout_ms = 30000)
             bytesTransferred += buffer.size_bytes
             
             
             if record_average:
-                (I_temp, Q_temp, ref_I_temp, ref_Q_temp) = single_buffer(buffer.buffer, recordsPerBuffer, cycles_per_record, t_avg, SinArray, CosArray, num_sequences, record_average, demodulate = demodulation)
-                print(f'Buffers Completed: {buffersCompleted}')
+                (I_temp, Q_temp) = single_buffer(buffer.buffer, recordsPerBuffer, cycles_per_record, t_avg, SinArray, CosArray, num_sequences, record_average)
+                print(buffersCompleted)
                 
                 if buffersCompleted == 0:
                     I_out = I_temp
                     Q_out = Q_temp
-                    ref_I = ref_I_temp
-                    ref_Q = ref_Q_temp
                 else:
                     I_out += I_temp
-                    Q_out += Q_temp 
-                    ref_I += ref_I_temp
-                    ref_Q += ref_Q_temp
+                    Q_out += Q_temp                    
 
             elif not record_average:
-                #this fills in a 2d array one row at a time
-                
-                (I_out[buffersCompleted*recordsPerBuffer: (buffersCompleted+1)*recordsPerBuffer], 
-                 Q_out[buffersCompleted*recordsPerBuffer: (buffersCompleted+1)*recordsPerBuffer], 
-                 ref_I[buffersCompleted*recordsPerBuffer: (buffersCompleted+1)*recordsPerBuffer], 
-                 ref_Q[buffersCompleted*recordsPerBuffer: (buffersCompleted+1)*recordsPerBuffer]) = single_buffer(buffer.buffer, recordsPerBuffer, cycles_per_record, t_avg, SinArray, CosArray, num_sequences, record_average, demodulate = demodulation)
+                (I_out[buffersCompleted*recordsPerBuffer: 
+                    (buffersCompleted+1)*recordsPerBuffer], 
+                 Q_out[buffersCompleted*recordsPerBuffer:
+                     (buffersCompleted+1)*recordsPerBuffer]) = single_buffer(buffer.buffer, recordsPerBuffer, cycles_per_record, t_avg, SinArray, CosArray, num_sequences, record_average)
             
             buffersCompleted += 1               
-            
+
+
+          
+#            (I_temp, Q_temp) = single_buffer(buffer.buffer, recordsPerBuffer, cycles_per_record, t_avg, SinArray, CosArray, num_sequences)
+#            print buffersCompleted
+#            
+#            if buffersCompleted == 1:
+#                I_out = I_temp
+#                Q_out = Q_temp
+#            else:
+#                I_out += I_temp
+#                Q_out += Q_temp
+                       
+                       
+
+           
+                       
+                       
             # Add the buffer to the end of the list of available buffers.
             board.postAsyncBuffer(buffer.addr, buffer.size_bytes)
             
@@ -441,12 +440,10 @@ def AcquireData(board, measurement_parameters, weight_function, use_AWG=True, AW
     if record_average:
         I_out = I_out / (num_records / num_sequences)
         Q_out = Q_out / (num_records / num_sequences)
-        ref_Q = ref_Q / (num_records / num_sequences)
-        ref_I = ref_I / (num_records / num_sequences)
     elif not record_average:
         pass
     
-    return (I_out, Q_out, ref_I, ref_Q)                       
+    return (I_out, Q_out)                       
                          
                          
                          
