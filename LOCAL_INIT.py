@@ -37,6 +37,7 @@ from hatdrivers.Tektronix_AWG5014C_old import Tektronix_AWG5014C as Tk_old
 AWG = Tk_old('AWG', 'TCPIP0::169.254.116.102::inst0::INSTR')
 #%%
 # MXA = Keysight_MXA_N9020A("MXA", address = 'TCPIP0::169.254.180.116::INSTR')
+CXA = Keysight_MXA_N9020A("CXA", address = 'TCPIP0::169.254.110.116::INSTR')
 # VNA = Agilent_ENA_5071C("VNA", address = "TCPIP0::169.254.169.64::inst0::INSTR", timeout = 30)
 pVNA = Hat_P9374A("pVNA", address = "TCPIP0::Hatlab_3-PC::hislip0,4880::INSTR", timeout = 3)
 #for little VNA: TCPIP0::Hatlab_3-PC::hislip0,4880::INSTR\

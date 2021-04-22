@@ -43,7 +43,7 @@ def ConfigureBoard(board):
     
     # TODO: Select channel A input parameters as required.
     board.inputControl(ats.CHANNEL_A,
-                       ats.AC_COUPLING, #changed DC to AC --we acquire at 50 MHZ MJH 2016_10_24
+                       ats.DC_COUPLING, #changed DC to AC --we acquire at 50 MHZ MJH 2016_10_24
                        ats.INPUT_RANGE_PM_400_MV,
 #                       ats.INPUT_RANGE_PM_1_V,
                        ats.IMPEDANCE_50_OHM)
@@ -54,7 +54,7 @@ def ConfigureBoard(board):
     
     # TODO: Select channel B input parameters as required.
     board.inputControl(ats.CHANNEL_B,
-                       ats.AC_COUPLING,
+                       ats.DC_COUPLING,
                        #ats.INPUT_RANGE_PM_400_MV,
                        ats.INPUT_RANGE_PM_400_MV,                       
                        ats.IMPEDANCE_50_OHM)

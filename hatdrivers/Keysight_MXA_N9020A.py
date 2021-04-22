@@ -472,5 +472,21 @@ class Keysight_MXA_N9020A(VisaInstrument):
         file.create_dataset("Freqs (Hz)", data = SA_data[:, 0])
         file.create_dataset("Noise Power (dBm)", data = SA_data[ :, 1])
         file.close()
+    
+    def print_important_info(self): 
+        print(f"Span: {self.fspan()}")
+        print(f"RBW: {self.RBW()}")
+        print(f"VBW: {self.VBW()}")
         
+    def plot_trace(self, avgnum = 1):
+        import matplotlib.pyplot as plt
+        SA_data = self.get_data(count = avgnum)
+        fig = plt.figure()
+        ax = fig.add_subplot(111)
+        ax.set_xlabel('Frequency (GHz)')
+        ax.set_ylabel('Power(dBm)')
+        ax.plot(SA_data[:,0]/1e9, SA_data[:,1])
+        print(f"Max of trace: {np.max(SA_data[:, 1])}")
+        self.print_important_info()
+        return np.max(SA_data[:, 1])
         
