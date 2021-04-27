@@ -43,8 +43,8 @@ def ConfigureBoard(board):
     
     # TODO: Select channel A input parameters as required.
     board.inputControl(ats.CHANNEL_A,
-                       ats.DC_COUPLING, #changed DC to AC --we acquire at 50 MHZ MJH 2016_10_24
-                       ats.INPUT_RANGE_PM_400_MV,
+                       ats.AC_COUPLING, #changed DC to AC --we acquire at 50 MHZ MJH 2016_10_24
+                       ats.INPUT_RANGE_PM_1_V,
 #                       ats.INPUT_RANGE_PM_1_V,
                        ats.IMPEDANCE_50_OHM)
     
@@ -54,9 +54,9 @@ def ConfigureBoard(board):
     
     # TODO: Select channel B input parameters as required.
     board.inputControl(ats.CHANNEL_B,
-                       ats.DC_COUPLING,
+                       ats.AC_COUPLING,
                        #ats.INPUT_RANGE_PM_400_MV,
-                       ats.INPUT_RANGE_PM_400_MV,                       
+                       ats.INPUT_RANGE_PM_1_V,                       
                        ats.IMPEDANCE_50_OHM)
     
     # TODO: Select channel B bandwidth limit as required.
@@ -118,7 +118,7 @@ class demodulation():
         
         elif not record_average:
             self.result = np.sum((self.temp * triarray).reshape((recordsPerBuffer, cycles_per_record, stride)), axis = 2)
-
+            # self.result = self.temp.reshape((recordsPerBuffer, cycles_per_record, stride))
 
 def single_buffer(data, recordsPerBuffer, cycles_per_record, stride, SinArray, CosArray, num_sequences, record_average, demodulate = True):
     '''
@@ -151,7 +151,7 @@ def single_buffer(data, recordsPerBuffer, cycles_per_record, stride, SinArray, C
     t4.join()
     
     if demodulate: 
-        print('Demodulating...')
+        print('Canceling Gen_phase...')
         Ref_mag = np.sqrt(refI.result**2 + refQ.result**2)
         #phase subtraction to remove generator drift
         Sig_I = (sigI.result*refI.result + sigQ.result*refQ.result)/Ref_mag
@@ -375,7 +375,7 @@ def AcquireData(board, measurement_parameters, weight_function, use_AWG=True, AW
 #            qt.msleep(1)  
             time.sleep(0.5)
         
-        
+        buffer_arr = []
         while (buffersCompleted < buffersPerAcquisition and not
                ats.enter_pressed()):
 
@@ -406,6 +406,7 @@ def AcquireData(board, measurement_parameters, weight_function, use_AWG=True, AW
             elif not record_average:
                 #this fills in a 2d array one row at a time
                 
+                buffer_arr.append(buffer.buffer)
                 (I_out[buffersCompleted*recordsPerBuffer: (buffersCompleted+1)*recordsPerBuffer], 
                  Q_out[buffersCompleted*recordsPerBuffer: (buffersCompleted+1)*recordsPerBuffer], 
                  ref_I[buffersCompleted*recordsPerBuffer: (buffersCompleted+1)*recordsPerBuffer], 
@@ -446,7 +447,7 @@ def AcquireData(board, measurement_parameters, weight_function, use_AWG=True, AW
     elif not record_average:
         pass
     
-    return (I_out, Q_out, ref_I, ref_Q)                       
+    return (I_out, Q_out, ref_I, ref_Q, buffer_arr)                       
                          
                          
                          

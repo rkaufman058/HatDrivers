@@ -31,13 +31,17 @@ from hatdrivers.Hat_P9374A import Hat_P9374A
 from hatdrivers.Hat_ENA5071C  import Hat_ENA5071C
 #Metainstruments and tools ... 
 from hatdrivers.meta_instruments import Modes
+
+from qcodes.instrument_drivers.AlazarTech.ATS9870 import AlazarTech_ATS9870
 #%%AWG
 from qcodes.instrument_drivers.tektronix.AWG5014 import Tektronix_AWG5014
 from hatdrivers.Tektronix_AWG5014C_old import Tektronix_AWG5014C as Tk_old
 AWG = Tk_old('AWG', 'TCPIP0::169.254.116.102::inst0::INSTR')
+# Alazar = AlazarTech_ATS9870('Alazar')
 #%%
 # MXA = Keysight_MXA_N9020A("MXA", address = 'TCPIP0::169.254.180.116::INSTR')
 CXA = Keysight_MXA_N9020A("CXA", address = 'TCPIP0::169.254.110.116::INSTR')
+#%%
 # VNA = Agilent_ENA_5071C("VNA", address = "TCPIP0::169.254.169.64::inst0::INSTR", timeout = 30)
 pVNA = Hat_P9374A("pVNA", address = "TCPIP0::Hatlab_3-PC::hislip0,4880::INSTR", timeout = 3)
 #for little VNA: TCPIP0::Hatlab_3-PC::hislip0,4880::INSTR\
@@ -78,6 +82,6 @@ dll_path = r'C:\Users\Hatlab_3\Desktop\RK_Scripts\New_Drivers\HatDrivers\DLL\sc5
 SC5 = SignalCore_SC5511A('SigCore5', serial_number = '10001851', debug = True)
 SC9 = SignalCore_SC5511A('SigCore9', serial_number = '1000190E', debug = True)
 # YROKO1 = instruments.create('YROKO1','YROKO_Client')SC
-
+from qcodes.instrument_drivers.tektronix.AWG5014 import Tektronix_AWG5014
 
 

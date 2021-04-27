@@ -154,7 +154,9 @@ def single_buffer(data, recordsPerBuffer, cycles_per_record, stride, SinArray, C
   
     Ref_mag = np.sqrt(refI.result**2 + refQ.result**2)
     Sig_I = (sigI.result*refI.result + sigQ.result*refQ.result)/Ref_mag
-    Sig_Q = (-sigI.result*refQ.result + sigQ.result*refI.result)/Ref_mag    
+    Sig_Q = (-sigI.result*refQ.result + sigQ.result*refI.result)/Ref_mag
+    Sig_I = sigI.result
+    Sig_Q = sigQ.result
 
     del t1
     del t2
@@ -235,8 +237,8 @@ def alazar_premesurement_setting(t_avg, points_per_record, num_records, num_sequ
      
     SinArray = np.arange(points_per_record)
     CosArray = np.arange(points_per_record)        
-    # SinArray = np.sin(2 * np.pi * SinArray / points_per_cycle) * np.sqrt(2 / t_avg)
-    # CosArray = np.cos(2 * np.pi * CosArray / points_per_cycle) * np.sqrt(2 / t_avg)
+    SinArray = np.sin(2 * np.pi * SinArray / points_per_cycle) * np.sqrt(2 / t_avg)
+    CosArray = np.cos(2 * np.pi * CosArray / points_per_cycle) * np.sqrt(2 / t_avg)
     
     if weight_function['use_weight_function']:
 #        print 'weighted'
@@ -254,7 +256,7 @@ def alazar_premesurement_setting(t_avg, points_per_record, num_records, num_sequ
     
     
     SinArray = np.tile(SinArray, record_per_buffer)
-    CosArray = np.tile(CosArray, record_per_buffer)    
+    CosArray = np.tile(CosArray, record_per_buffer)
     
     
     return (MAX_NUM_BUFFERS, cycles_per_record, num_ram_buffers, SinArray, CosArray, new_num_records)
